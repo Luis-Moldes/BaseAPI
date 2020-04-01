@@ -52,6 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -135,6 +136,8 @@ STATICFILES_DIRS = (
     '/static/',
 )
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
@@ -145,5 +148,15 @@ REST_FRAMEWORK = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# We can't use the default SQLite database on Heroku because it is file-based, and it would be deleted from the ephemeral
+# file system every time the application restarts. The database connection information is supplied to the web dyno using
+# a configuration variable named DATABASE_URL. Rather than hard-coding this information into Django, Heroku recommends
+# that developers use the dj-database-url package to parse the DATABASE_URL environment variable and automatically convert
+# it to Django’s desired configuration format
+# Heroku: Update database configuration from $DATABASE_URL.
+import dj_database_url
+db_from_env = dj_database_url.config(conn_max_age=500) #makes the connection persistent
+DATABASES['default'].update(db_from_env)
 
 
