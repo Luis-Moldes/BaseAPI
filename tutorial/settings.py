@@ -33,7 +33,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'cg#p$g+j9tax!#a3cup@1$8obt2_+&
 DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False' #The value of the DEBUG will be True by default, but will only be
                                                       # False if the value of the DJANGO_DEBUG environment variable is set to False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['knd-base-api.herokuapp.com', '127.0.0.1']
 
 
 # Application definition
@@ -159,4 +159,5 @@ import dj_database_url
 db_from_env = dj_database_url.config(conn_max_age=500) #makes the connection persistent
 DATABASES['default'].update(db_from_env)
 
-
+# Deleted from requirements #pypiwin32==223, #pywin32==227 and #xlrd==1.2.0: they are Windows-dependant
+# Run in the terminal: heroku config:set DISABLE_COLLECTSTATIC=1
