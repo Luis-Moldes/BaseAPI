@@ -129,14 +129,21 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
+#
+# STATICFILES_DIRS = (
+#     os.path.join(BASE_DIR, "static"),
+#     '/static/',
+# )
+
+STATIC_URL = '/media/'
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, "static"),
-    '/static/',
+    os.path.join(BASE_DIR, "media"),
+    '/media/',
 )
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -148,6 +155,8 @@ REST_FRAMEWORK = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # We can't use the default SQLite database on Heroku because it is file-based, and it would be deleted from the ephemeral
 # file system every time the application restarts. The database connection information is supplied to the web dyno using
