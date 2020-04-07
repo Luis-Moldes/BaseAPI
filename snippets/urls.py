@@ -35,7 +35,7 @@ urlpatterns = format_suffix_patterns([
          name='number-detail'),
     path('upload/', views.FileUploadView.as_view(), name='uploadimage'),
     # path('api-token-auth/', obtain_auth_token, name='api-tokn-auth')
-    path('api-token-auth/', include('django_expiring_token.urls'), name='api-tokn-auth')
+    path('api-token-auth/', include('django_expiring_token.urls'))
 ])
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
