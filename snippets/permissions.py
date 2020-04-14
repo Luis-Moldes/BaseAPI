@@ -1,6 +1,7 @@
 from rest_framework import permissions, exceptions
 from datetime import timedelta
-import datetime
+from datetime import datetime
+import datetime as dtime
 import pytz
 
 
@@ -34,21 +35,22 @@ class IsOwnerOrNothing(permissions.BasePermission):
         return obj.owner == request.user
 
 # For an expiring token (there is no built in method)
-from rest_framework.authentication import TokenAuthentication, get_authorization_header
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.authentication import TokenAuthentication
 
 class ExpiringTokenAuthentication(TokenAuthentication):
+
     def authenticate_credentials(self, key):
+        model = self.get_model()
         try:
-            token = self.model.objects.get(key=key)
-        except self.model.DoesNotExist:
+            token = model.objects.get(key=key)
+        except model.DoesNotExist:#self.model.DoesNotExist:
             raise exceptions.AuthenticationFailed('Invalid token')
 
         if not token.user.is_active:
             raise exceptions.AuthenticationFailed('User inactive or deleted')
 
         # This is required for the time comparison
-        utc_now = datetime.utcnow()
+        utc_now = datetime.now(dtime.timezone.utc)
         utc_now = utc_now.replace(tzinfo=pytz.utc)
 
         if token.created < utc_now - timedelta(hours=24):

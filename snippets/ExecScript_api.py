@@ -48,9 +48,11 @@ def WarpRetrieve(url, token):
         df = pd.DataFrame({'timestamp':res[0],
                             'lat':res[1],
                             'lon':res[2]})
-        df['timestamp']= df['timestamp'].map(lambda ts: Warp10Util.EpochToTime(int(ts)))
+        df['timestamp']= df['timestamp'].map(lambda ts: snippets.Warp10Util.EpochToTime(int(ts)))
         for i in range(3,3+len(variables)-1):
                 var = variables[i - 3]
                 df[var]=res[i]  # may contain some nan! can be tested with np.isnan()
+
+        meanTWA=np.mean(df.TWA)
 
         return meanTWA

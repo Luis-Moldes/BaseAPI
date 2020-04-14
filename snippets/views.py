@@ -18,6 +18,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.views.decorators.csrf import csrf_exempt
 
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+from rest_framework import status
+from rest_framework.response import Response
+
+
 # Here the functions to be used are defined. They are defined as classes based on the built-in REST 'generic' models, so
 # they have a series of methods and characteristics already defined, which can be consulted here:
 # https://www.django-rest-framework.org/api-guide/generic-views/
@@ -129,19 +135,12 @@ def api_root(request, format=None):
 
     })
 
-
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
-from rest_framework import status
-from rest_framework.response import Response
-
-
 #  We override the default rest framework login view
 class ObtainExpiringAuthToken(ObtainAuthToken):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            token, created =  Token.objects.get_or_create(user=serializer.validated_data['user'])
+            token, created = Token.objects.get_or_create(user=serializer.validated_data['user'])
 
             if not created:
                 # update the created time of the token to keep it valid
