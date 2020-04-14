@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
-from datetime import timedelta
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -48,8 +47,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'snippets.apps.SnippetsConfig',
-    'django_expiring_token',
-    #'rest_framework.authtoken'
+    # 'django_expiring_token',
+    'rest_framework.authtoken'
 ]
 
 MIDDLEWARE = [
@@ -140,16 +139,16 @@ STATICFILES_DIRS = (
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+from snippets.permissions import ExpiringTokenAuthentication
+
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        # 'rest_framework.authentication.TokenAuthentication',
-        'django_expiring_token.authentication.ExpiringTokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+        # 'ExpiringTokenAuthentication',
     ),
 }
-
-EXPIRING_TOKEN_DURATION=timedelta(hours=1)
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")

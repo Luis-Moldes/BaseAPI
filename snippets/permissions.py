@@ -1,4 +1,7 @@
-from rest_framework import permissions
+from rest_framework import permissions, exceptions
+from datetime import timedelta
+import datetime
+import pytz
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -29,3 +32,26 @@ class IsOwnerOrNothing(permissions.BasePermission):
         #
         # # Write permissions are only allowed to the owner of the snippet.
         return obj.owner == request.user
+
+# For an expiring token (there is no built in method)
+from rest_framework.authentication import TokenAuthentication, get_authorization_header
+from rest_framework.exceptions import AuthenticationFailed
+
+class ExpiringTokenAuthentication(TokenAuthentication):
+    def authenticate_credentials(self, key):
+        try:
+            token = self.model.objects.get(key=key)
+        except self.model.DoesNotExist:
+            raise exceptions.AuthenticationFailed('Invalid token')
+
+        if not token.user.is_active:
+            raise exceptions.AuthenticationFailed('User inactive or deleted')
+
+        # This is required for the time comparison
+        utc_now = datetime.utcnow()
+        utc_now = utc_now.replace(tzinfo=pytz.utc)
+
+        if token.created < utc_now - timedelta(hours=24):
+            raise exceptions.AuthenticationFailed('Token has expired')
+
+        return token.user, token

@@ -2,7 +2,7 @@
 
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
-from snippets import views
+from snippets import views, permissions
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -33,9 +33,15 @@ urlpatterns = format_suffix_patterns([
     path('numbers/<int:pk>/',
          views.NumberDetail.as_view(),
          name='number-detail'),
+    path('data/',
+         views.WarpList.as_view(),
+         name='data-list'),
+    path('data/<int:pk>/',
+         views.WarpDetail.as_view(),
+         name='data-detail'),
     path('upload/', views.FileUploadView.as_view(), name='uploadimage'),
     # path('api-token-auth/', obtain_auth_token, name='api-tokn-auth')
-    path('api-token-auth/', include('django_expiring_token.urls'))
+    path('api-token-auth/', views.obtain_expiring_auth_token, name='api-tokn-auth')
 ])
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

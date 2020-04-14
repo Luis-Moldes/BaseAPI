@@ -1,5 +1,6 @@
-from snippets.models import Snippet, Number, File
-from snippets.serialyzers import SnippetSerializer, UserSerializer, NumberSerializer, NumberSerializerForAll, FileSerializer
+from snippets.models import Snippet, Number, File, Warp
+from snippets.serialyzers import SnippetSerializer, UserSerializer, NumberSerializer, NumberSerializerForAll,\
+    FileSerializer, WarpSerializer, WarpSerializerForAll
 from snippets.permissions import IsOwnerOrReadOnly, IsOwnerOrNothing
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view
@@ -9,7 +10,7 @@ from rest_framework import viewsets
 from rest_framework import generics
 from rest_framework import renderers
 from rest_framework.response import Response
-
+import datetime
 from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.parsers import FileUploadParser
@@ -52,6 +53,22 @@ class NumberDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Number.objects.all()
     serializer_class = NumberSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,IsOwnerOrNothing]
+
+
+class WarpList(generics.ListCreateAPIView):
+    queryset = Warp.objects.all()
+    serializer_class = WarpSerializerForAll
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,IsOwnerOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+class WarpDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Warp.objects.all()
+    serializer_class = WarpSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,IsOwnerOrNothing]
+
 
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
@@ -107,9 +124,35 @@ def api_root(request, format=None):
         'users': reverse('user-list', request=request, format=format),
         'snippets': reverse('snippet-list', request=request, format=format),
         'numbers': reverse('num-list', request=request, format=format),
+        'data': reverse('data-list', request=request, format=format),
         'upload': reverse('uploadimage', request=request, format=format)
 
     })
+
+
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+from rest_framework import status
+from rest_framework.response import Response
+
+
+#  We override the default rest framework login view
+class ObtainExpiringAuthToken(ObtainAuthToken):
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            token, created =  Token.objects.get_or_create(user=serializer.validated_data['user'])
+
+            if not created:
+                # update the created time of the token to keep it valid
+                token.created = datetime.datetime.utcnow()
+                token.save()
+
+            return Response({'token': token.key})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+obtain_expiring_auth_token = ObtainExpiringAuthToken.as_view()
+
 
 
 '''

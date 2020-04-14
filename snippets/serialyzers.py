@@ -27,12 +27,30 @@ class NumberSerializer(serializers.HyperlinkedModelSerializer): #
         fields = ['url', 'id',  'owner', 'num', 'sqrt', 'square', 'created', 'file']
         # readonly_fields = ['file']
 
-
 class NumberSerializerForAll(serializers.HyperlinkedModelSerializer): #
     owner = serializers.ReadOnlyField(source='owner.username')
     class Meta:
         model = Number
         fields = ['id',  'owner', 'num', 'url']
+
+
+class WarpSerializer(serializers.HyperlinkedModelSerializer): #
+    owner = serializers.ReadOnlyField(source='owner.username')
+    meanTWA = serializers.ReadOnlyField()
+    # file = serializers.FileField(max_length=None, use_url=True)
+
+    class Meta:
+        model = Number
+        fields = ['id', 'owner', 'created', 'meanTWA']
+
+
+class WarpSerializerForAll(serializers.HyperlinkedModelSerializer): #
+    owner = serializers.ReadOnlyField(source='owner.username')
+    # file = serializers.FileField(max_length=None, use_url=True)
+
+    class Meta:
+        model = Number
+        fields = ['id',  'owner','created']
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
