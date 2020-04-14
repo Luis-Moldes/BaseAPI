@@ -139,14 +139,14 @@ STATICFILES_DIRS = (
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-from snippets.permissions import ExpiringTokenAuthentication
+# from snippets.permissions import ExpiringTokenAuthentication
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
-        # 'ExpiringTokenAuthentication',
+        # 'rest_framework.authentication.TokenAuthentication',
+        'snippets.permissions.ExpiringTokenAuthentication',
     ),
 }
 
