@@ -7,6 +7,8 @@ import numpy as np
 def WarpRetrieve(url, token):
         variables = ["COG", "SOG", "HDG", "STW", "TWD", "TWS", "TWA", "AWS", "AWA", "STW_EFF"]
 
+        print(url + ' / ' + token)
+
         script= r"'"+token+"'"   + "\n" \
                 r"'Rt' STORE" + "\n" \
                 r"$Rt AUTHENTICATE 1000000 LIMIT 10000 MAXOPS 10000 MAXLOOP"  + "\n" \
@@ -34,7 +36,7 @@ def WarpRetrieve(url, token):
                 r"[ $ticks $latitudes $longitudes $cog $sog $hdg $stw $tws $twa $aws $awa $stw_eff ]"
 
         header = {"content-type": "application/text"}
-        url = url  + r"/exec"
+        url += "/exec"
         print("Exec script from warp10... " + url)
         r = requests.post(url, headers=header,data=script)
         if (r.status_code!=200):
