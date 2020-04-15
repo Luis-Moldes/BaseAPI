@@ -3,8 +3,10 @@ import snippets.Warp10Util
 import json
 import pandas as pd
 import numpy as np
+from rest_framework import exceptions
 
 def WarpRetrieve(url, token):
+
         variables = ["COG", "SOG", "HDG", "STW", "TWD", "TWS", "TWA", "AWS", "AWA", "STW_EFF"]
 
         print(url + ' / ' + token)
@@ -40,6 +42,7 @@ def WarpRetrieve(url, token):
         print("Exec script from warp10... " + url)
         r = requests.post(url, headers=header,data=script)
         if (r.status_code!=200):
+            raise exceptions.NotAcceptable("ERROR: warp10 server returned statuscode " + str(r.status_code)+ ', ' + str(r.content))
             print("ERROR: warp10 server returned statuscode " + str(r.status_code))
             print(str(r.content))
             exit()
@@ -55,6 +58,6 @@ def WarpRetrieve(url, token):
                 var = variables[i - 3]
                 df[var]=res[i]  # may contain some nan! can be tested with np.isnan()
 
-        meanTWA=np.mean(df.TWA)
+        meanSOG=np.mean(df.SOG)
 
-        return meanTWA
+        return meanSOG

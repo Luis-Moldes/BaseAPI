@@ -36,21 +36,21 @@ class NumberSerializerForAll(serializers.HyperlinkedModelSerializer): #
 
 class WarpSerializer(serializers.HyperlinkedModelSerializer): #
     owner = serializers.ReadOnlyField(source='owner.username')
-    meanTWA = serializers.ReadOnlyField()
+    meanSOG = serializers.ReadOnlyField()
     # file = serializers.FileField(max_length=None, use_url=True)
 
     class Meta:
         model = Warp
-        fields = ['id', 'owner', 'retrieved', 'meanTWA']
+        fields = ['id', 'owner', 'retrieved', 'meanSOG', 'warp_url', 'warp_token', 'url']
 
 
 class WarpSerializerForAll(serializers.HyperlinkedModelSerializer): #
     owner = serializers.ReadOnlyField(source='owner.username')
-    # file = serializers.FileField(max_length=None, use_url=True)
+    meanSOG = serializers.ReadOnlyField()
 
     class Meta:
         model = Warp
-        fields = ['id',  'owner', 'retrieved']
+        fields = ['id',  'owner', 'retrieved', 'url', 'warp_url', 'warp_token', 'meanSOG']
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):

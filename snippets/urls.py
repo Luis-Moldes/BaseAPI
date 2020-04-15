@@ -35,10 +35,10 @@ urlpatterns = format_suffix_patterns([
          name='number-detail'),
     path('data/',
          views.WarpList.as_view(),
-         name='data-list'),
+         name='warp-list'),
     path('data/<int:pk>/',
          views.WarpDetail.as_view(),
-         name='data-detail'),
+         name='warp-detail'),
     path('upload/', views.FileUploadView.as_view(), name='uploadimage'),
     # path('api-token-auth/', obtain_auth_token, name='api-tokn-auth')
     path('api-token-auth/', views.obtain_expiring_auth_token, name='api-tokn-auth')

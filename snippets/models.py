@@ -13,6 +13,7 @@ from snippets.docxmaker import quickhacktogetadocx_API
 from snippets.ExecScript_api import WarpRetrieve
 import datetime
 
+
 LEXERS = [item for item in get_all_lexers() if item[1]]
 LANGUAGE_CHOICES = sorted([(item[1][0], item[0]) for item in LEXERS])
 STYLE_CHOICES = sorted([(item, item) for item in get_all_styles()])
@@ -89,14 +90,15 @@ class File(models.Model):
 
 class Warp(models.Model):
     retrieved = models.DateTimeField(auto_now_add=True)
-    url = models.CharField(max_length=100, blank=True, default='')
-    token = models.CharField(max_length=100, blank=True, default='')
-    meanTWA = models.BigIntegerField(default=0)
+
+    warp_url = models.CharField(max_length=200, default='aaaaa')
+    warp_token = models.CharField(max_length=200)
+    meanSOG = models.FloatField()
     # file = models.FileField(upload_to='Files/', default='Files/None/No-img.pdf')
     owner = models.ForeignKey('auth.User', related_name='data', on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs): # This method will override the default save(), adding the highlighted field
-        self.meanTWA = WarpRetrieve(str(self.url), str(self.token))
+        self.meanSOG = WarpRetrieve(self.warp_url, self.warp_token)
 
         # self.file = quickhacktogetadocx_API(self.num,self.sqrt,self.square,'snippets/template_soloreport.docx', self.owner,
         #                                     datetime.datetime.now().strftime('%Y-%m-%d'))
