@@ -41,7 +41,7 @@ class WarpSerializer(serializers.HyperlinkedModelSerializer): #
 
     class Meta:
         model = Warp
-        fields = ['id', 'owner', 'created', 'meanTWA']
+        fields = ['id', 'owner', 'retrieved', 'meanTWA']
 
 
 class WarpSerializerForAll(serializers.HyperlinkedModelSerializer): #
@@ -50,7 +50,7 @@ class WarpSerializerForAll(serializers.HyperlinkedModelSerializer): #
 
     class Meta:
         model = Warp
-        fields = ['id',  'owner','created']
+        fields = ['id',  'owner', 'retrieved']
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
