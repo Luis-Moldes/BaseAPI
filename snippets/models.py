@@ -97,10 +97,10 @@ class Warp(models.Model):
 
     def save(self, *args, **kwargs): # This method will override the default save(), adding the highlighted field
         self.meanTWA = WarpRetrieve(self.url, self.token)
-        self.sqrt = squareroot(self.num)
+
         # self.file = quickhacktogetadocx_API(self.num,self.sqrt,self.square,'snippets/template_soloreport.docx', self.owner,
         #                                     datetime.datetime.now().strftime('%Y-%m-%d'))
-        super(Number, self).save(*args, **kwargs)
+        super(Warp, self).save(*args, **kwargs)
 
     class Meta:
         ordering = ['retrieved']
