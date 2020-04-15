@@ -96,7 +96,7 @@ class Warp(models.Model):
     owner = models.ForeignKey('auth.User', related_name='data', on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs): # This method will override the default save(), adding the highlighted field
-        self.meanTWA = WarpRetrieve(self.url, self.token)
+        self.meanTWA = WarpRetrieve(str(self.url), str(self.token))
 
         # self.file = quickhacktogetadocx_API(self.num,self.sqrt,self.square,'snippets/template_soloreport.docx', self.owner,
         #                                     datetime.datetime.now().strftime('%Y-%m-%d'))
