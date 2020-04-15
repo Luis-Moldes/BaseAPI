@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from snippets.models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES, Number, File
+from snippets.models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES, Number, File, Warp
 from django.contrib.auth.models import User
 
 # This is the link between our classes and the environment, what allows it to interpret them. All the data will be
@@ -40,7 +40,7 @@ class WarpSerializer(serializers.HyperlinkedModelSerializer): #
     # file = serializers.FileField(max_length=None, use_url=True)
 
     class Meta:
-        model = Number
+        model = Warp
         fields = ['id', 'owner', 'created', 'meanTWA']
 
 
@@ -49,7 +49,7 @@ class WarpSerializerForAll(serializers.HyperlinkedModelSerializer): #
     # file = serializers.FileField(max_length=None, use_url=True)
 
     class Meta:
-        model = Number
+        model = Warp
         fields = ['id',  'owner','created']
 
 
