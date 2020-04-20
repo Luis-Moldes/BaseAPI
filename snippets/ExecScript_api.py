@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from rest_framework import exceptions
 import snippets.Warp_Config as conf
+from snippets.Tools import angles_stats
 
 def WarpRetrieve(boat_id, event_id):
 
@@ -59,6 +60,4 @@ def WarpRetrieve(boat_id, event_id):
                 var = variables[i - 3]
                 df[var]=res[i]  # may contain some nan! can be tested with np.isnan()
 
-
-
-        return np.mean(df.SOG), np.mean(df.COG)
+        return np.mean(df.SOG), angles_stats(df.COG, 'Mean')
