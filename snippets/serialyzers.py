@@ -55,6 +55,7 @@ class WarpSerializer(serializers.HyperlinkedModelSerializer):
 class WarpSerializerForAll(serializers.HyperlinkedModelSerializer): #
     owner = serializers.ReadOnlyField(source='owner.username')
     meanSOG = serializers.ReadOnlyField()
+    meanCOG = serializers.ReadOnlyField()
 
     class Meta:
         model = Warp
