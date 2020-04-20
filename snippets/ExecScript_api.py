@@ -4,19 +4,20 @@ import json
 import pandas as pd
 import numpy as np
 from rest_framework import exceptions
+import snippets.Warp_Config as conf
 
-def WarpRetrieve(url, token):
+def WarpRetrieve(boat_id, event_id):
 
-        variables = ["COG", "SOG", "HDG", "STW", "TWD", "TWS", "TWA", "AWS", "AWA", "STW_EFF"]
+        url=conf.warp_url
 
-        print(url + ' / ' + token)
+        variables = conf.vars
 
-        script= r"'"+token+"'"   + "\n" \
+        script= r"'"+conf.warp_token+"'"   + "\n" \
                 r"'Rt' STORE" + "\n" \
                 r"$Rt AUTHENTICATE 1000000 LIMIT 10000 MAXOPS 10000 MAXLOOP"  + "\n" \
-                r"'2019-05-17T14:00:00.000Z' 'start' STORE"  + "\n" \
-                r"'2019-05-17T14:00:10.0Z' 'stop' STORE"  + "\n" \
-                r"[ $Rt 'BoatData' { 'boat_id' 'cdc3' 'event_id' 'gascogne4552019' } $start $stop ] FETCH  0 GET 'BoatData' STORE"  + "\n" \
+                r"'2000-05-16T17:00:00.000Z' 'start' STORE"  + "\n" \
+                r"'2100-05-17T14:00:10.0Z' 'stop' STORE"  + "\n" \
+                r"[ $Rt '" + conf.name + "' { 'boat_id' '"+boat_id+"' 'event_id' '"+event_id+"' } $start $stop ] FETCH  0 GET 'BoatData' STORE"  + "\n" \
                 r"$BoatData"  + "\n" \
                 r"MVINDEXSPLIT { 'DOUBLE' '~.*{}' } ->GTS"  + "\n" \
                 r"'input' STORE"  + "\n" \
@@ -40,7 +41,7 @@ def WarpRetrieve(url, token):
         header = {"content-type": "application/text"}
         url += "/exec"
         print("Exec script from warp10... " + url)
-        r = requests.post(url, headers=header,data=script)
+        r = requests.post(url, headers=header, data=script)
         if (r.status_code!=200):
             raise exceptions.NotAcceptable("ERROR: warp10 server returned statuscode " + str(r.status_code)+ ', ' + str(r.content))
             print("ERROR: warp10 server returned statuscode " + str(r.status_code))
@@ -58,6 +59,6 @@ def WarpRetrieve(url, token):
                 var = variables[i - 3]
                 df[var]=res[i]  # may contain some nan! can be tested with np.isnan()
 
-        meanSOG=np.mean(df.SOG)
 
-        return meanSOG
+
+        return np.mean(df.SOG), np.mean(df.COG)

@@ -34,15 +34,23 @@ class NumberSerializerForAll(serializers.HyperlinkedModelSerializer): #
         fields = ['id',  'owner', 'num', 'url']
 
 
-class WarpSerializer(serializers.HyperlinkedModelSerializer): #
-    owner = serializers.ReadOnlyField(source='owner.username')
+# class WarpSerializer(serializers.HyperlinkedModelSerializer): #
+#     owner = serializers.ReadOnlyField(source='owner.username')
+#     meanSOG = serializers.ReadOnlyField()
+#     # file = serializers.FileField(max_length=None, use_url=True)
+#
+#     class Meta:
+#         model = Warp
+#         fields = ['id', 'owner', 'retrieved', 'meanSOG', 'boat_id', 'event', 'url', 'meanCOG']
+
+class WarpSerializer(serializers.HyperlinkedModelSerializer):
+
     meanSOG = serializers.ReadOnlyField()
-    # file = serializers.FileField(max_length=None, use_url=True)
+    meanCOG = serializers.ReadOnlyField()
 
     class Meta:
         model = Warp
-        fields = ['id', 'owner', 'retrieved', 'meanSOG', 'warp_url', 'warp_token', 'url']
-
+        fields = ['meanSOG', 'meanCOG']
 
 class WarpSerializerForAll(serializers.HyperlinkedModelSerializer): #
     owner = serializers.ReadOnlyField(source='owner.username')
@@ -50,7 +58,7 @@ class WarpSerializerForAll(serializers.HyperlinkedModelSerializer): #
 
     class Meta:
         model = Warp
-        fields = ['id',  'owner', 'retrieved', 'url', 'warp_url', 'warp_token', 'meanSOG']
+        fields = ['id',  'owner', 'retrieved', 'url', 'boat_id', 'event', 'meanSOG', 'meanCOG']
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
