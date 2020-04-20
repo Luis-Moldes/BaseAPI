@@ -98,7 +98,7 @@ class Warp(models.Model):
     # file = models.FileField(upload_to='Files/', default='Files/None/No-img.pdf')
     owner = models.ForeignKey('auth.User', related_name='data', on_delete=models.CASCADE)
 
-    def save(self, *args, **kwargs): # This method will override the default save(), adding the highlighted field
+    def save(self, *args, **kwargs): # This method willpy override the default save(), adding the highlighted field
         [self.meanSOG, self.meanCOG] = WarpRetrieve(self.boat_id, self.event)
 
         # self.file = quickhacktogetadocx_API(self.num,self.sqrt,self.square,'snippets/template_soloreport.docx', self.owner,
