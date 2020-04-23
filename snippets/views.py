@@ -103,16 +103,6 @@ class WarpGetter(generics.RetrieveUpdateDestroyAPIView):
 
 
 
-
-
-
-
-
-
-
-
-
-
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
