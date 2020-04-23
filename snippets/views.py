@@ -1,7 +1,9 @@
 from snippets.models import Snippet, Number, File, Warp
 from snippets.serialyzers import SnippetSerializer, UserSerializer, NumberSerializer, NumberSerializerForAll,\
-    FileSerializer, WarpSerializer, WarpSerializerForAll
+    FileSerializer, WarpSerializer, WarpSerializerForAll, WarpSerializerForGet
 from snippets.permissions import IsOwnerOrReadOnly, IsOwnerOrNothing
+from snippets.ExecScript_api import WarpRetrieve
+
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view
 from rest_framework.reverse import reverse
@@ -9,7 +11,9 @@ from rest_framework import permissions
 from rest_framework import viewsets
 from rest_framework import generics
 from rest_framework import renderers
+from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
+from django.http import HttpResponse, JsonResponse
 import datetime
 from rest_framework import status
 from rest_framework.exceptions import ParseError
@@ -75,6 +79,39 @@ class WarpDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = WarpSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,IsOwnerOrNothing]
 
+    # def get(self, request, *args, **kwargs): # An override of the default "get" command
+    #     return Response(request.data)
+
+
+class WarpGetter(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Warp.objects.all()
+    serializer_class = WarpSerializerForGet
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,IsOwnerOrNothing]
+
+    def get(self, request, *args, **kwargs): # An override of the default "get" command
+        # return Response(request.data)
+        serializer = WarpSerializerForGet(data=request.data)
+        if serializer.is_valid():
+            data = {"Mean_SOG": WarpRetrieve(request.data.get('boat_id'), request.data.get('event'))[0],
+                    "Mean_COG": WarpRetrieve(request.data.get('boat_id'), request.data.get('event'))[1]}
+            return JsonResponse(data, status=201)
+
+            # return JsonResponse(serializer.getit(request).data, status=201)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
@@ -93,6 +130,11 @@ class SnippetHighlight(generics.GenericAPIView):
     def get(self, request, *args, **kwargs): # An override of the default "get" command
         snippet = self.get_object()
         return Response(snippet.highlighted)
+
+
+
+
+
 
 
 class FileUploadView(generics.ListAPIView):

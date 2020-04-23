@@ -39,9 +39,12 @@ urlpatterns = format_suffix_patterns([
     path('data/<int:pk>/',
          views.WarpDetail.as_view(),
          name='warp-detail'),
+    path('getdata/',
+         views.WarpGetter.as_view(),
+         name='data-retrieve'),
     path('upload/', views.FileUploadView.as_view(), name='uploadimage'),
     # path('api-token-auth/', obtain_auth_token, name='api-tokn-auth')
-    path('api-token-auth/', views.obtain_expiring_auth_token, name='api-token-auth')
+    path('api-token-auth/', views.obtain_expiring_auth_token, name='api-tokn-auth')
 ])
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

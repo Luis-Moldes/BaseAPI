@@ -89,6 +89,10 @@ class File(models.Model):
 
 
 class Warp(models.Model):
+
+    # def Calculate(self): # This method willpy override the default save(), adding the highlighted field
+    #     return WarpRetrieve(self.boat_id, self.event)
+
     retrieved = models.DateTimeField(auto_now_add=True)
 
     boat_id = models.CharField(max_length=200, default='aaaaa')
@@ -97,6 +101,8 @@ class Warp(models.Model):
     meanCOG = models.FloatField()
     # file = models.FileField(upload_to='Files/', default='Files/None/No-img.pdf')
     owner = models.ForeignKey('auth.User', related_name='data', on_delete=models.CASCADE)
+    # [meanSOG, meanCOG] = WarpRetrieve(boat_id, event)
+
 
     def save(self, *args, **kwargs): # This method willpy override the default save(), adding the highlighted field
         [self.meanSOG, self.meanCOG] = WarpRetrieve(self.boat_id, self.event)
@@ -104,6 +110,7 @@ class Warp(models.Model):
         # self.file = quickhacktogetadocx_API(self.num,self.sqrt,self.square,'snippets/template_soloreport.docx', self.owner,
         #                                     datetime.datetime.now().strftime('%Y-%m-%d'))
         super(Warp, self).save(*args, **kwargs)
+
 
     class Meta:
         ordering = ['retrieved']

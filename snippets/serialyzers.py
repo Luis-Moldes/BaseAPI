@@ -1,11 +1,13 @@
 from rest_framework import serializers
 from snippets.models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES, Number, File, Warp
 from django.contrib.auth.models import User
+from snippets.ExecScript_api import WarpRetrieve
 
-# This is the link between our classes and the environment, what allows it to interpret them. All the data will be
+# This is the link between our classes and the environment, what allows it to interpret them as representations such as json.
+# All the data will be
 # sent and received in this format, as it can be seen in Views. Serializers include functions to create and delete instances
 # of the classes they refer to. The simplified REST syntax will be used, but a more comprehensible way can be seen in the
-# commented code below: first using ModelSerializer and the using basic REST code
+# commented code below: first using ModelSerializer and the using basic REST code.
 
 class SnippetSerializer(serializers.HyperlinkedModelSerializer): #
     owner = serializers.ReadOnlyField(source='owner.username')
@@ -53,13 +55,27 @@ class WarpSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['meanSOG', 'meanCOG']
 
 class WarpSerializerForAll(serializers.HyperlinkedModelSerializer): #
+
     owner = serializers.ReadOnlyField(source='owner.username')
     meanSOG = serializers.ReadOnlyField()
     meanCOG = serializers.ReadOnlyField()
 
     class Meta:
         model = Warp
-        fields = ['id',  'owner', 'retrieved', 'url', 'boat_id', 'event', 'meanSOG', 'meanCOG']
+        fields = ['id', 'owner', 'retrieved', 'url', 'boat_id', 'event', 'meanSOG', 'meanCOG']
+
+
+class WarpSerializerForGet(serializers.HyperlinkedModelSerializer): #
+
+    boat_id = serializers.CharField()
+    event = serializers.CharField()
+    meanSOG = serializers.FloatField(default=0)
+    meanCOG = serializers.FloatField(default=1)
+
+    class Meta:
+        model = Warp
+        fields = ['boat_id', 'event', 'meanSOG', 'meanCOG']
+
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
