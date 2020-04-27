@@ -8,6 +8,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.authtoken.views import obtain_auth_token
+import rest_framework_simplejwt
+from rest_framework_simplejwt import views as jwt_views
 
 # API endpoints:
 urlpatterns = format_suffix_patterns([
@@ -44,7 +46,9 @@ urlpatterns = format_suffix_patterns([
          name='data-retrieve'),
     path('upload/', views.FileUploadView.as_view(), name='uploadimage'),
     # path('api-token-auth/', obtain_auth_token, name='api-tokn-auth')
-    path('api-token-auth/', views.obtain_expiring_auth_token, name='api-tokn-auth')
+    path('api-token-auth/', views.obtain_expiring_auth_token, name='api-tokn-auth'),
+    path('api-token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api-token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
 ])
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

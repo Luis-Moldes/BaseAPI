@@ -89,14 +89,19 @@ class WarpGetter(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,IsOwnerOrNothing]
 
     def get(self, request, *args, **kwargs): # An override of the default "get" command
-        # return Response(request.data)
-        serializer = WarpSerializerForGet(data=request.data)
+        # return Response(request.data) #For testing
+        # serializer = WarpSerializerForGet(data=request.data) #If you include the parameters in the body, i.e. its a POST request
+        serializer = WarpSerializerForGet(data=request.query_params)
         if serializer.is_valid():
-            data = {"Mean_SOG": WarpRetrieve(request.data.get('boat_id'), request.data.get('event'))[0],
-                    "Mean_COG": WarpRetrieve(request.data.get('boat_id'), request.data.get('event'))[1]}
+            # If you include the parameters in the body, i.e. its a POST request:
+            # data = {"Mean_SOG": WarpRetrieve(request.data.get('boat_id'), request.data.get('event'))[0],
+            #         "Mean_COG": WarpRetrieve(request.data.get('boat_id'), request.data.get('event'))[1]}
+
+            data = {"Mean_SOG": WarpRetrieve(request.query_params.get('boat_id'), request.query_params.get('event'))[0],
+                    "Mean_COG": WarpRetrieve(request.query_params.get('boat_id'), request.query_params.get('event'))[1]}
+
             return JsonResponse(data, status=201)
 
-            # return JsonResponse(serializer.getit(request).data, status=201)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -172,7 +177,7 @@ class ObtainExpiringAuthToken(ObtainAuthToken):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            token, created = Token.objects.get_or_create(user=serializer.validated_data['user'])
+            token, created = Token.objects.get_or_create(user=serializer.validated_data['user']) # OJO
 
             if not created:
                 # update the created time of the token to keep it valid

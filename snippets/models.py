@@ -97,8 +97,8 @@ class Warp(models.Model):
 
     boat_id = models.CharField(max_length=200, default='aaaaa')
     event = models.CharField(max_length=200)
-    meanSOG = models.FloatField()
-    meanCOG = models.FloatField()
+    meanSOG = models.FloatField(default=0)
+    meanCOG = models.FloatField(default=0)
     # file = models.FileField(upload_to='Files/', default='Files/None/No-img.pdf')
     owner = models.ForeignKey('auth.User', related_name='data', on_delete=models.CASCADE)
     # [meanSOG, meanCOG] = WarpRetrieve(boat_id, event)
