@@ -55,3 +55,4 @@ Unidecode==1.1.1
 urllib3==1.25.8
 whitenoise==5.0.1
 #xlrd==1.2.0
+psycopg2-binary==2.7.7
