@@ -97,8 +97,8 @@ class WarpGetter(generics.RetrieveUpdateDestroyAPIView):
             # data = {"Mean_SOG": WarpRetrieve(request.data.get('boat_id'), request.data.get('event'))[0],
             #         "Mean_COG": WarpRetrieve(request.data.get('boat_id'), request.data.get('event'))[1]}
 
-            data = {"Mean_SOG": WarpRetrieve(request.query_params.get('boat_id'), request.query_params.get('event'))[0],
-                    "Mean_COG": WarpRetrieve(request.query_params.get('boat_id'), request.query_params.get('event'))[1]}
+            data = {"Mean_SOG": WarpRetrieve(request.query_params.get('boat_id'), request.query_params.get('event_id'))[0],
+                    "Mean_COG": WarpRetrieve(request.query_params.get('boat_id'), request.query_params.get('event_id'))[1]}
 
             return JsonResponse(data, status=201)
 

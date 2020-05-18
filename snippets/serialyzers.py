@@ -68,13 +68,13 @@ class WarpSerializerForAll(serializers.HyperlinkedModelSerializer): #
 class WarpSerializerForGet(serializers.HyperlinkedModelSerializer): #
 
     boat_id = serializers.CharField()
-    event = serializers.CharField()
+    event_id = serializers.CharField()
     meanSOG = serializers.FloatField(default=0)
     meanCOG = serializers.FloatField(default=1)
 
     class Meta:
         model = Warp
-        fields = ['boat_id', 'event', 'meanSOG', 'meanCOG']
+        fields = ['boat_id', 'event_id', 'meanSOG', 'meanCOG']
 
 
 
