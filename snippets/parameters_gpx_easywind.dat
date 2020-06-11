@@ -1,0 +1,172 @@
+# PARAMETERS READ BY THE CODE
+
+########################################################################################################################
+""" defining which variables to calculate in case the configuration is of type .GPX + EasyWind"""
+
+#			Boolean variables determining wether or not to take an action:
+
+create_plots = True
+create_scatter = True
+show_tack_gybe = True
+show_phases = True
+
+wind_man_cal = True
+wind_auto_cal = True
+TWD_is_present = True
+
+phase_creation = True
+phases_only_portions = False
+race_mode = False
+
+event_creation = True
+export_creation = True
+csv_creation = True
+
+#			CONSTANTS:
+
+# TimeDelta between two data points
+dt = 1
+
+# Cutout frequency for the lowpass filter
+lowpass_freq = 0.15
+
+# Local magnetic variation
+mag_variation = 0.23
+
+# Angles (deg)
+tacking_angle = 140
+maneuver_angle = 40
+
+# Time for wand lengths to calculate the average heading, yaw, gyroZ, etc.
+time_1_hdg_before = 5
+time_2_hdg_before = 15
+
+time_1_hdg_after = 5
+time_2_hdg_after = 15
+
+time_hdgmax = 8
+
+time_1_TWA = 5
+time_2_TWA = 12
+
+man_wand_to_avoid_before = 1
+man_wand_to_avoid_after = 7
+
+# minimum limit for the median speed for phase creation (kts) (was 2)
+speed_median_min = 2
+
+# limit value for TWA to differenciate tacks from gybes
+up_down_twa_limit = 90
+
+# start and stop time of phases (if phases_only_portions selected)
+t_phase_start = 2019-05-13 08:38:43
+t_phase_stop = 2019-05-13 08:47:15
+
+# time before/after tacks and gybes to analyse perf
+man_time_before = 20
+man_time_after_2 = 20
+man_time_after_1 = 10
+
+# Data in case no EasyWind is used
+
+TWS_of_the_day = 10
+Temperature_of_the_day = 20
+Pressure_of_the_day = 1020
+
+
+# Boat name and color
+
+Name = Boat1
+Name_color = #323232
+
+
+#################### Advanced / Custom ##########################
+
+
+# Amount of time after the start of the race analysis time you have to start a new leg
+
+Race_Turn = 60
+
+
+# Phase cleaning speed margin
+
+Phase_Speed_Margin = 0.25
+
+
+# Shift Scale
+
+Shift_Step_1 = 5
+Shift_Step_2 = 10
+
+
+# Time span of race start/stop speed decrease
+
+SD_Time = 25
+
+
+# Estimated manoeuvre time in seconds (for Remember)
+
+Man_Time = 10
+
+
+# Shift plot with respect to (Wind/Axis)
+
+Shift_Ref = Wind
+
+
+# Decimal places for .txts
+
+Exp_Dec = 1
+
+
+
+
+#####################################################################################################################
+
+# Are race start and end times to be read from an event file?
+
+Read_Event_Time = False
+
+
+# Shift graphs (Dir/Lift)
+
+Shift_Mode = Dir
+
+
+# True if you have forgotten the
+
+race_mode = True
+
+
+TWD_of_the_day = 70
+
+
+
+# Could you make a leg with no maneouvres?
+
+no_man_legs = True
+
+
+# Reaching Angles (were 85-95, 85-140 for lazer)
+
+Upwind_Reach_Angle = 85
+Downwind_Reach_Angle = 140
+
+
+# length of the phases (secs) (usually 5)
+
+phase_length = 5
+
+
+# Minimum leg duration in seconds
+
+Minimum_Leg_Time = 30
+
+
+# limit for the standard deviation of TWA for phase creation
+
+std_twa_limit = 0.5
+
+
+
+

@@ -89,18 +89,28 @@ class WarpGetter(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,IsOwnerOrNothing]
 
     def get(self, request, *args, **kwargs): # An override of the default "get" command
-        # return Response(request.data) #For testing
+        # return Response(request.data.get('popo')) #For testing
         # serializer = WarpSerializerForGet(data=request.data) #If you include the parameters in the body, i.e. its a POST request
-        serializer = WarpSerializerForGet(data=request.query_params)
+        serializer = WarpSerializerForGet(data=request.data)
+        message=""
         if serializer.is_valid():
-            # If you include the parameters in the body, i.e. its a POST request:
-            # data = {"Mean_SOG": WarpRetrieve(request.data.get('boat_id'), request.data.get('event'))[0],
-            #         "Mean_COG": WarpRetrieve(request.data.get('boat_id'), request.data.get('event'))[1]}
 
-            data = {"Mean_SOG": WarpRetrieve(request.query_params.get('boat_id'), request.query_params.get('event_id'))[0],
-                    "Mean_COG": WarpRetrieve(request.query_params.get('boat_id'), request.query_params.get('event_id'))[1]}
+            # if request.data.get('start')==None or request.data.get('stop')==None:
+                # message += " - No analysis times in input"
+                # times=True
+            # if request.query_params.get('twd')==None:
+            #     message += "No wind information in input\n"
 
-            return JsonResponse(data, status=201)
+            # out = WarpRetrieve(request.query_params.get('boat_id'), request.query_params.get('event_id'),
+            #                                  request.query_params.get('start'),request.query_params.get('stop'),
+            #                                  request.query_params.get('twd'),request.query_params.get('tws'))
+            out = WarpRetrieve(request.data.get('boat_id'), request.data.get('event_id'),
+                                request.data.get('start'),request.data.get('stop'),
+                                request.data.get('twd'),request.data.get('tws'),request.data.get('upwind_angle'),
+                                request.data.get('downwind_angle'),request.data.get('tack_wand'),request.data.get('gybe_wand'),
+                                request.data.get('speedo_calibration_steps'), request.data.get('man_speed_treshold_perc') )
+
+            return JsonResponse(out, status=201)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
