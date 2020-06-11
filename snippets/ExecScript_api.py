@@ -70,7 +70,7 @@ def WarpRetrieve(boat_id, event_id, start_time, stop_time, twd, tws, upwind_angl
                 r"FILLPREVIOUS" + "\n" \
                 r"[ SWAP 'sailing' mapper.eq 0 0 0 ] MAP 0 GET 'sailticks' STORE" + "\n" \
                 r"[ $BoatData $sailticks ] COMMONTICKS 0 GET 'BoatData' STORE" + "\n"\
-                r"0 'mode' STORE" + "\n" \
+                r"2 'mode' STORE" + "\n" \
                 r"%>" + "\n" \
                 r"<%" + "\n" \
                 r"1 'mode' STORE" + "\n" \
@@ -184,7 +184,7 @@ def WarpRetrieve(boat_id, event_id, start_time, stop_time, twd, tws, upwind_angl
 
         if res[-1] == 1:
                 warnings.append('- No info about sailing modes found in database: data will be extracted from the whole database')
-        else:
+        elif res[-1] == 2:
                 warnings.append('- Sailing modes info was found in database!')
 
         #TIME REDUCTION
