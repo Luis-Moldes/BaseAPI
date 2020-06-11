@@ -266,7 +266,7 @@ def WarpRetrieve(boat_id, event_id, start_time, stop_time, twd, tws, upwind_angl
                 "Warnings":warnings}
 
 # a=WarpRetrieve('cdc3', 'gascogne4552019', '2019-05-16 13:00:00', '2019-05-16 15:40:00', 10, 10, None, None, None, None)
-a=WarpRetrieve('cdc3', 'entrainement_jan2020_d2_gps_only', None, None, None, None, None, None, None, None, None, None)
+# a=WarpRetrieve('cdc3', 'entrainement_jan2020_d2_gps_only', None, None, None, None, None, None, None, None, None, None)
 
 # entrainement_jan2020_d2_gps_only entrainement_oct2020_d3_with_gaps gascogne4552019 gascogne4552019_10k entrainement_oct2020_d3_no_gap
 
