@@ -5,7 +5,7 @@ from snippets.functions_API import read_parameters, calculate_cog_NoFilter, Wind
 
 def RememberTime(log):
 
-    params = read_parameters('parameters_gpx_easywind.dat')
+    params = read_parameters('snippets/parameters_gpx_easywind.dat')
     dt = params['dt']
 
     # if config != 'CSV':
