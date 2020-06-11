@@ -203,8 +203,8 @@ def WarpRetrieve(boat_id, event_id, start_time, stop_time, twd, tws, upwind_angl
 
         else:
                 twd5min=log.TWD.rolling(int(min(300 / dt, len(log)))).mean()
-                twd_left=min(twd5min)
-                twd_right = max(twd5min)
+                twd_left=np.nanmin(twd5min)
+                twd_right = np.nanmax(twd5min)
 
         if 'TWA' not in log.columns:
                 log['TWA'] = calculate_TWA(log.Date_Time, log.TWD, log.COG)
