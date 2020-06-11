@@ -10,7 +10,6 @@ import datetime
 from snippets.Tools_API import lowpass, latlon_to_metres, latlon_course, magneto_calib, TimeDelta, latlon_course360, \
     angles_stats, rotate_angles_180
 import warnings
-import xlrd
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 from scipy.stats import circstd
