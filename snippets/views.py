@@ -106,9 +106,9 @@ class WarpGetter(generics.RetrieveUpdateDestroyAPIView):
             #                                  request.query_params.get('twd'),request.query_params.get('tws'))
             out = WarpRetrieve(request.data.get('boat_id'), request.data.get('event_id'),
                                 request.data.get('start'),request.data.get('stop'),
-                                float(request.data.get('twd')),float(request.data.get('tws')),float(request.data.get('upwind_angle')),
-                                float(request.data.get('downwind_angle')),eval(request.data.get('tack_wand')),eval(request.data.get('gybe_wand')),
-                                eval(request.data.get('speedo_calibration_steps')), float(request.data.get('man_speed_treshold_perc')))
+                                request.data.get('twd'),request.data.get('tws'),request.data.get('upwind_angle'),
+                                request.data.get('downwind_angle'),request.data.get('tack_wand'),request.data.get('gybe_wand'),
+                                request.data.get('speedo_calibration_steps'), request.data.get('man_speed_treshold_perc') )
 
             return JsonResponse(out, status=201)
 

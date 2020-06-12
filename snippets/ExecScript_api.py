@@ -23,24 +23,39 @@ def WarpRetrieve(boat_id, event_id, start_time, stop_time, twd, tws, upwind_angl
         if upwind_angle==None:
                 upwind_angle=80
                 warnings.append('- No upwind reaching wind angle found in input, it will be set to 80º')
+        else:
+                upwind_angle = float(upwind_angle)
+
         if downwind_angle==None:
                 downwind_angle=110
                 warnings.append('- No downwind reaching wind angle found in input, it will be set to 110º')
+        else:
+                downwind_angle = float(downwind_angle)
+
 
         if tack_wand==None:
                 tack_wand=[20,40,15] #Time before, after, average
                 warnings.append('- No parameters for tack analysis found in input, default values will be used')
+        else:
+                tack_wand=eval(tack_wand)
+
         if gybe_wand==None:
                 gybe_wand=[30,60,15] #Time before, after, average
                 warnings.append('- No parameters for gybe analysis found in input, default values will be used')
+        else:
+                gybe_wand = eval(gybe_wand)
 
         if speedo_calib == None:
                 speedo_calib = [5,8]
                 warnings.append('- No parameters for speedometer calibration steps found in input, default values will be used [5,8]')
+        else:
+                speedo_calib = eval(speedo_calib)
 
         if speed_treshold_perc == None:
                 speed_treshold_perc = 0.7
                 warnings.append('- No parameters for maneuver selection found in input, it will be set to 85% of the mean SOG')
+        else:
+                speed_treshold_perc=float(speed_treshold_perc)
 
         if start_time==None or stop_time==None:
                 need_times='T'
@@ -195,8 +210,8 @@ def WarpRetrieve(boat_id, event_id, start_time, stop_time, twd, tws, upwind_angl
                         log['TWS'] = pd.Series(np.ones(len(log)) * 10)
                         warnings.append('- No info about wind found in database or input, it will be estimated')
                 else:
-                        log['TWD'] = pd.Series(np.ones(len(log)) * twd)
-                        log['TWS'] = pd.Series(np.ones(len(log)) * tws)
+                        log['TWD'] = pd.Series(np.ones(len(log)) * float(twd))
+                        log['TWS'] = pd.Series(np.ones(len(log)) * float(tws))
 
                 twd_left=log['TWD'][0]
                 twd_right = log['TWD'][0]
