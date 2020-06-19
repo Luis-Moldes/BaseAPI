@@ -92,7 +92,6 @@ class WarpGetter(generics.RetrieveUpdateDestroyAPIView):
         # return Response(request.data.get('popo')) #For testing
         # serializer = WarpSerializerForGet(data=request.data) #If you include the parameters in the body, i.e. its a POST request
         serializer = WarpSerializerForGet(data=request.data)
-        message=""
         if serializer.is_valid():
 
             # if request.data.get('start')==None or request.data.get('stop')==None:
@@ -101,14 +100,14 @@ class WarpGetter(generics.RetrieveUpdateDestroyAPIView):
             # if request.query_params.get('twd')==None:
             #     message += "No wind information in input\n"
 
-            # out = WarpRetrieve(request.query_params.get('boat_id'), request.query_params.get('event_id'),
-            #                                  request.query_params.get('start'),request.query_params.get('stop'),
-            #                                  request.query_params.get('twd'),request.query_params.get('tws'))
+            # out = WarpRetrieve(request.data.get('boat_id'), request.data.get('event_id'),
+            #                     request.data.get('start'),request.data.get('stop'),
+            #                     request.data.get('twd'),request.data.get('tws'),request.data.get('upwind_angle'),
+            #                     request.data.get('downwind_angle'),request.data.get('tack_wand'),request.data.get('gybe_wand'),
+            #                     request.data.get('speedo_calibration_steps'), request.data.get('man_speed_treshold_perc') )
+
             out = WarpRetrieve(request.data.get('boat_id'), request.data.get('event_id'),
-                                request.data.get('start'),request.data.get('stop'),
-                                request.data.get('twd'),request.data.get('tws'),request.data.get('upwind_angle'),
-                                request.data.get('downwind_angle'),request.data.get('tack_wand'),request.data.get('gybe_wand'),
-                                request.data.get('speedo_calibration_steps'), request.data.get('man_speed_treshold_perc') )
+                                request.data.get('filter'), request.data.get('config'))
 
             return JsonResponse(out, status=201)
 

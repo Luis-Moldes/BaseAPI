@@ -9,10 +9,10 @@ import snippets.Warp_Config as conf
 from snippets.Tools import angles_stats
 from snippets.RememberTime_API import RememberTime
 from snippets.functions_API import calculate_TWA, datetoindex, manoeuvres_gpx_easy_API
-
-def WarpRetrieve(boat_id, event_id, start_time, stop_time, twd, tws, upwind_angle, downwind_angle, tack_wand, gybe_wand,
-                 speedo_calib, speed_treshold_perc):
-
+#
+# def WarpRetrieve(boat_id, event_id, start_time, stop_time, twd, tws, upwind_angle, downwind_angle, tack_wand, gybe_wand,
+#                  speedovec, speed_treshold_perc):
+def WarpRetrieve(boat_id, event_id, filter, config):
 
         url=conf.warp_url
 
@@ -20,52 +20,114 @@ def WarpRetrieve(boat_id, event_id, start_time, stop_time, twd, tws, upwind_angl
 
         warnings=[]
 
-        if upwind_angle==None:
+        # Checking how complete the dict is isn't easy, there might be a whole field or just a variable missing
+
+        filter_vars=['start_time','stop_time','only_while_sailing']
+
+        if filter==None: #If the whole field is missing
+                filter={}
+                for i in filter_vars: #You have to create the variables and set them all to None
+                        filter[i]=None
+        else: #If the field is there you still have to check that all te variables are there
+                for i in filter_vars:
+                        if i not in filter.keys(): #If one of them isn't, you create it and set it to None
+                                filter[i]=None
+
+        config_vars=['twd_if_missing','tws_if_missing','upwind_angle', 'downwind_angle', 'tack_detection', 'gybe_detection', 'speedo_calibration']
+
+        if config==None:
+                config={}
+                for i in config_vars:
+                        config[i]=None
+        else:
+                for i in config_vars:
+                        if i not in config.keys():
+                                config[i]=None
+
+        man_vars = ['time_before','time_after', 'wand_length', 'speed_threshold'] #You also must check fields that have in turn other felds
+
+        for manny in ['tack_detection', 'gybe_detection']:
+                if config[manny]==None:
+                        config[manny]={}
+                        for i in man_vars:
+                                config[manny][i]=None
+                else:
+                        for i in man_vars:
+                                if i not in config[manny].keys():
+                                        config[manny][i]=None
+
+        #Then you apply the corresponding criteria to each variable
+
+
+        ''' CONFIG '''
+
+        if config['upwind_angle']==None:
                 upwind_angle=80
                 warnings.append('- No upwind reaching wind angle found in input, it will be set to 80º')
         else:
-                upwind_angle = float(upwind_angle)
+                upwind_angle = float(config['upwind_angle'])
 
-        if downwind_angle==None:
+        if config['downwind_angle']==None:
                 downwind_angle=110
                 warnings.append('- No downwind reaching wind angle found in input, it will be set to 110º')
         else:
-                downwind_angle = float(downwind_angle)
+                downwind_angle = float(config['downwind_angle'])
+
+        if config['speedo_calibration'] == None:
+                speedovec = [5,8]
+                warnings.append('- No values for speedometer calibration steps found in input, default values will be used [5,8]')
+        else:
+                speedovec = eval(config['speedo_calibration'])
 
 
-        if tack_wand==None:
+
+        ''' MANEUVER DETECTION '''
+
+        if None in [config['tack_detection']['time_before'],config['tack_detection']['time_after'],config['tack_detection']['wand_length']]:
                 tack_wand=[20,40,15] #Time before, after, average
-                warnings.append('- No parameters for tack analysis found in input, default values will be used')
+                warnings.append('- Missing parameters for tack analysis wand found in input, default values will be used')
         else:
-                tack_wand=eval(tack_wand)
+                tack_wand=[int(i) for i in [config['tack_detection']['time_before'],config['tack_detection']['time_after'],
+                                            config['tack_detection']['wand_length']]]
 
-        if gybe_wand==None:
+        if config['tack_detection']['speed_threshold'] == None:
+                speed_treshold_perc_tack = 0.7
+                warnings.append('- No speed threshold percentage for tack selection found in input, it will be set to 85% of the mean SOG')
+        else:
+                speed_treshold_perc_tack=float(config['tack_detection']['speed_threshold'])
+
+        if None in [config['gybe_detection']['time_before'],config['gybe_detection']['time_after'],config['gybe_detection']['wand_length']]:
                 gybe_wand=[30,60,15] #Time before, after, average
-                warnings.append('- No parameters for gybe analysis found in input, default values will be used')
+                warnings.append('- Missing parameters for tack analysis wand found in input, default values will be used')
         else:
-                gybe_wand = eval(gybe_wand)
+                gybe_wand=[int(i) for i in [config['gybe_detection']['time_before'],config['gybe_detection']['time_after'],
+                                            config['gybe_detection']['wand_length']]]
 
-        if speedo_calib == None:
-                speedo_calib = [5,8]
-                warnings.append('- No parameters for speedometer calibration steps found in input, default values will be used [5,8]')
+        if config['gybe_detection']['speed_threshold'] == None:
+                speed_treshold_perc_gybe = 0.7
+                warnings.append('- No speed threshold percentage for gybe selection found in input, it will be set to 85% of the mean SOG')
         else:
-                speedo_calib = eval(speedo_calib)
+                speed_treshold_perc_gybe=float(config['gybe_detection']['speed_threshold'])
 
-        if speed_treshold_perc == None:
-                speed_treshold_perc = 0.7
-                warnings.append('- No parameters for maneuver selection found in input, it will be set to 85% of the mean SOG')
-        else:
-                speed_treshold_perc=float(speed_treshold_perc)
 
-        if start_time==None or stop_time==None:
-                need_times='T'
+
+        ''' FILTER '''
+
+        if filter['start_time']==None or filter['stop_time']==None:
                 start_str = '2015-05-16T15:00:00.000Z'
                 stop_str = '2100-05-16T17:00:10.000Z'
                 warnings.append('- No analysis times found in input')
         else:
+                start_str = filter['start_time'][:10] + 'T' + filter['start_time'][-8:] + '.000Z'
+                stop_str = filter['stop_time'][:10] + 'T' + filter['stop_time'][-8:] + '.000Z'
+
+        if filter['only_while_sailing']==None or filter['only_while_sailing']=='False':
                 need_times='F'
-                start_str = start_time[:10] + 'T' + start_time[-8:] + '.000Z'
-                stop_str = stop_time[:10] + 'T' + stop_time[-8:] + '.000Z'
+                if filter['start_time'] == None or filter['stop_time'] == None:
+                        warnings.append('- Consider setting \'only_while_sailing\' to True for a more precise analysis')
+        else:
+                need_times='T'
+
 
         script= r"'"+conf.warp_token+"'"   + "\n" \
                 r"'Rt' STORE" + "\n" \
@@ -205,13 +267,13 @@ def WarpRetrieve(boat_id, event_id, start_time, stop_time, twd, tws, upwind_angl
         #TIME REDUCTION
 
         if 'TWD' not in log.columns:
-                if twd is None:
+                if config['twd_if_missing'] is None:
                         log['TWD'] = RememberTime(log)
                         log['TWS'] = pd.Series(np.ones(len(log)) * 10)
                         warnings.append('- No info about wind found in database or input, it will be estimated')
                 else:
-                        log['TWD'] = pd.Series(np.ones(len(log)) * float(twd))
-                        log['TWS'] = pd.Series(np.ones(len(log)) * float(tws))
+                        log['TWD'] = pd.Series(np.ones(len(log)) * float(config['twd_if_missing']))
+                        log['TWS'] = pd.Series(np.ones(len(log)) * float(config['tws_if_missing']))
 
                 twd_left=log['TWD'][0]
                 twd_right = log['TWD'][0]
@@ -232,7 +294,8 @@ def WarpRetrieve(boat_id, event_id, start_time, stop_time, twd, tws, upwind_angl
         log['Dist'] = log['SOG_Kts'] * dt * 1852 / (3600)
 
         [maneuvers_indexes, tacking_deltaTWA, tacking_indexes, gybing_deltaTWA, gybing_indexes]=\
-                manoeuvres_gpx_easy_API(dt, log.Date_Time, log.TWA, log.SOG_Kts, log.COG, tack_wand, gybe_wand, speed_treshold_perc)
+                manoeuvres_gpx_easy_API(dt, log.Date_Time, log.TWA, log.SOG_Kts, log.COG, tack_wand, gybe_wand,
+                                        speed_treshold_perc_tack, speed_treshold_perc_gybe)
 
         deltatack=np.mean(tacking_deltaTWA)
         deltagybe = np.mean(gybing_deltaTWA)
@@ -267,22 +330,46 @@ def WarpRetrieve(boat_id, event_id, start_time, stop_time, twd, tws, upwind_angl
         if 'DeltaCOG' in log.columns:
                 compass_accuracy.append(np.mean(log[log.TWA<0].DeltaCOG))
                 compass_accuracy.append(np.mean(log[log.TWA>0].DeltaCOG))
+                compassdict = {"Upwind": compass_accuracy[0], "Downwind": compass_accuracy[1], "Reaching": compass_accuracy[2]
+                        , "Port": compass_accuracy[3], "Starboard": compass_accuracy[4]}
         else:
-                compass_accuracy = 'Unavailable: no Heading information in database'
+                compassdict = 'Unavailable: no Heading information in database'
 
+        speedovec=[0]+speedovec
         if 'DeltaSOG' in log.columns:
-                speedo_accuracy = [np.mean(log[log.SOG_Kts<speedo_calib[0]].DeltaSOG),np.mean(log[log.SOG_Kts>speedo_calib[0]
-                        & log.SOG_Kts<speedo_calib[1]].DeltaSOG), np.mean(log[log.SOG_Kts>speedo_calib[1]].DeltaSOG)]
+                speedodict = []
+                for i in range(len(speedovec)-1):
+                        if i==len(speedovec)-1:
+                                speedodict[str(speedovec[i])+" to "+str(speedovec[i+1])+" kts"] = np.mean(log[log.SOG_Kts>
+                                        speedovec[i] & log.SOG_Kts<speedovec[i+1]].DeltaSOG)
+                        else:
+                                speedodict[str(speedovec[i])+" kts to Inf"] = np.mean(log[log.SOG_Kts > speedovec[i] &
+                                        log.SOG_Kts < speedovec[i + 1]].DeltaSOG)
         else:
-                speedo_accuracy = 'Unavailable: no BSP information in database'
+                speedodict = 'Unavailable: no BSP information in database'
 
-        return {"Mean_SOG":sogmean, "Max_SOG_1s":sogmax, "Max_SOG_5min":sogmax5, "Max_SOG_1h":sogmax60, "Times":time,
-                "Distances":distance, "Mean_TWA":twamean, "TWD_Max_Left":twd_left, "TWD_Max_Right":twd_right,
-                "Tack_Delta_TWA_Avg":deltatack, "Gybe_Delta_TWA_Avg":deltagybe, "Compass_Accuracy":compass_accuracy, "Speedometer_Accuracy":speedo_accuracy,
+        # return {"Mean_SOG":{"a":1, "b":2}, "Max_SOG_1s":sogmax, "Max_SOG_5min":sogmax5, "Max_SOG_1h":sogmax60, "Times":time,
+        #         "Distances":distance, "Mean_TWA":twamean, "TWD_Max_Left":twd_left, "TWD_Max_Right":twd_right,
+        #         "Tack_Delta_TWA_Avg":deltatack, "Gybe_Delta_TWA_Avg":deltagybe, "Compass_Accuracy":compass_accuracy, "Speedometer_Accuracy":speedo_accuracy,
+        #         "Warnings":warnings}
+
+        return {"SOG":{"Max":{"Upwind":sogmax[0],"Downwind":sogmax[1],"Reaching":sogmax[2]},
+                "Max_5min":{"Upwind":sogmax5[0],"Downwind":sogmax5[1],"Reaching":sogmax5[2]},
+                "Max_1h":{"Upwind":sogmax60[0],"Downwind":sogmax60[1],"Reaching":sogmax60[2]}},
+                "Times":{"Upwind":time[0],"Downwind":time[1],"Reaching":time[2]},
+                "Distances":{"Upwind":distance[0],"Downwind":distance[1],"Reaching":distance[2]},
+                "TWA":{"Mean":{"Upwind":twamean[0],"Downwind":twamean[1],"Reaching":twamean[2]}},
+                "TWD":{"Max_Left":twd_left, "Max_Right":twd_right},
+                "Maneuvers":{"Tack_Delta_TWA_Avg":deltatack, "Gybe_Delta_TWA_Avg":deltagybe},
+                "Compass_Accuracy":compassdict, "Speedometer_Accuracy":speedodict,
                 "Warnings":warnings}
 
-# a=WarpRetrieve('cdc3', 'gascogne4552019', '2019-05-16 13:00:00', '2019-05-16 15:40:00', 10, 10, None, None, None, None)
+
+# a=WarpRetrieve('cdc3', 'gascogne4552019', None, {"ass":2,"boo":'justin'}, 10, 10, None, None, None, None, None, None)
 # a=WarpRetrieve('cdc3', 'entrainement_jan2020_d2_gps_only', None, None, None, None, None, None, None, None, None, None)
+
+a=WarpRetrieve('cdc3', 'gascogne4552019', None, None)
+
 
 # entrainement_jan2020_d2_gps_only entrainement_oct2020_d3_with_gaps gascogne4552019 gascogne4552019_10k entrainement_oct2020_d3_no_gap
 

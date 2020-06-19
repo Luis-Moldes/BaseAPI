@@ -1568,7 +1568,7 @@ def manoeuvres_1(dt, time, COG, speed, tacking_angle, maneuver_angle, time_1_hdg
         return manoeuvres, man_indexes
 
 
-def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, speed_treshold_perc):
+def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, speed_treshold_perc_tack, speed_treshold_perc_gybe):
     TWA = TWA.tolist()
     #quantile_speed = np.percentile(speed, 25)
     #speed = speed.tolist()
@@ -1590,7 +1590,8 @@ def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, spe
     index_gybe_after_2 = int(gybe_wand[1] / dt)
     index_max = max(index_tack_before_1, index_gybe_before_1)
 
-    speed_treshold = np.mean(speed)*speed_treshold_perc
+    speed_treshold_tack = np.mean(speed)*speed_treshold_perc_tack
+    speed_treshold_gybe = np.mean(speed) * speed_treshold_perc_gybe
 
     for i in range(index_max, len(time) - index_max):
 
@@ -1610,8 +1611,8 @@ def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, spe
                 SOG_mean_before = np.mean(speed[i - index_tack_before_1: i - index_tack_before_2 + 1])
                 SOG_mean_after = np.mean(speed[i + index_tack_after_1: i + index_tack_after_2 + 1])
 
-                if np.sign(TWA_mean_before) != np.sign(TWA_mean_after) and delta_HDG > 20 and SOG_mean_before>speed_treshold \
-                        and SOG_mean_after>speed_treshold:
+                if np.sign(TWA_mean_before) != np.sign(TWA_mean_after) and delta_HDG > 20 and SOG_mean_before>speed_treshold_tack \
+                        and SOG_mean_after>speed_treshold_tack:
                     maneuvers_indexes.append(i)
                     tacking_indexes.append(i)
                     tacking_deltaTWA.append(min(abs(TWA_mean_before-TWA_mean_after), 360-abs((TWA_mean_before-TWA_mean_after))))
@@ -1630,8 +1631,8 @@ def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, spe
                 SOG_mean_before = np.mean(speed[i - index_gybe_before_1: i - index_gybe_before_2 + 1])
                 SOG_mean_after = np.mean(speed[i + index_gybe_after_1: i + index_gybe_after_2 + 1])
 
-                if np.sign(TWA_mean_before) != np.sign(TWA_mean_after) and delta_HDG > 20 and SOG_mean_before>speed_treshold \
-                        and SOG_mean_after>speed_treshold:
+                if np.sign(TWA_mean_before) != np.sign(TWA_mean_after) and delta_HDG > 20 and SOG_mean_before>speed_treshold_gybe \
+                        and SOG_mean_after>speed_treshold_gybe:
                     maneuvers_indexes.append(i)
                     gybing_indexes.append(i)
                     gybing_deltaTWA.append(min(abs(TWA_mean_before-TWA_mean_after), 360-abs((TWA_mean_before-TWA_mean_after))))
