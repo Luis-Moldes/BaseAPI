@@ -18,6 +18,24 @@ from scipy.stats import circstd
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
+def sliding_log(log, span):
+
+    newlog=pd.DataFrame()
+
+    for col in log.columns:
+        if col in ['COG','TWD']:
+            newlog[col]=[angles_stats(log[col][max(0,i-span):min(len(log)-1,i+span+1)],'Mean') for i in range(len(log))]
+
+        elif col in ['TWA']:
+            newlog[col] = [angles_stats(log[col][max(0,i-span):min(len(log)-1,i+span+1)],'Mean',twa=True) for i in range(len(log))]
+
+        else:
+            newlog[col] = [np.mean(log[col][max(0,i-span):min(len(log)-1,i+span+1)]) for i in range(len(log))]
+
+    return newlog
+
+
+
 def read_configs(path):
     fileObj = open(path)
     output = {}
@@ -1524,43 +1542,43 @@ def manoeuvres_1(dt, time, COG, speed, tacking_angle, maneuver_angle, time_1_hdg
 
     """ WAND INITIALIZATION """
 
-    HDG_wand_before = [0] * index_max
-    HDG_wand_after = [0] * index_max
-    HDG_mean_before = [0] * index_max
-    HDG_mean_after = [0] * index_max
-    delta_HDG = [0] * index_max
+    COG_wand_before = [0] * index_max
+    COG_wand_after = [0] * index_max
+    COG_mean_before = [0] * index_max
+    COG_mean_after = [0] * index_max
+    delta_COG = [0] * index_max
     dheading_wands = [0] * index_max
     max_dheading = [0] * index_max
 
     for i in range(index_max, len(time) - index_max):
         """ HEADING WAND BEFORE THE POINT WITH INDEX i """
-        HDG_wand_before.append(COG[i - index_2_hdg_before: i - index_1_hdg_before + 1])
-        HDG_mean_before.append(stats.circmean(HDG_wand_before[i], high=360))
+        COG_wand_before.append(COG[i - index_2_hdg_before: i - index_1_hdg_before + 1])
+        COG_mean_before.append(stats.circmean(COG_wand_before[i], high=360))
 
         """ HEADING WAND AFTER THE POINT WITH INDEX i """
-        HDG_wand_after.append(COG[i + index_1_hdg_after: i + index_2_hdg_after + 1])
-        HDG_mean_after.append(stats.circmean(HDG_wand_after[i], high=360))
+        COG_wand_after.append(COG[i + index_1_hdg_after: i + index_2_hdg_after + 1])
+        COG_mean_after.append(stats.circmean(COG_wand_after[i], high=360))
 
-        delta_HDG.append(
-            min(abs(HDG_mean_after[i] - HDG_mean_before[i]), 360 - abs(HDG_mean_after[i] - HDG_mean_before[i])))
+        delta_COG.append(
+            min(abs(COG_mean_after[i] - COG_mean_before[i]), 360 - abs(COG_mean_after[i] - COG_mean_before[i])))
 
     for i in range(index_max, len(time) - index_max):
         """ DELTA-HEADING WAND (CENTERED ON i) + MAX_VALUE """
-        dheading_wands.append(delta_HDG[i - index_hdgmax: i + index_hdgmax + 1])
+        dheading_wands.append(delta_COG[i - index_hdgmax: i + index_hdgmax + 1])
         max_dheading.append(max(dheading_wands[i]))
 
     for i in range(index_max, len(time) - index_max):
-        if delta_HDG[i] > maneuver_angle:
-            if delta_HDG[i] == max_dheading[i] and np.mean(speed[i - index_hdgmax: i + index_hdgmax + 1]) > 2:
+        if delta_COG[i] > maneuver_angle:
+            if delta_COG[i] == max_dheading[i] and np.mean(speed[i - index_hdgmax: i + index_hdgmax + 1]) > 2:
 
                 manoeuvres.append(time[i])
                 man_indexes.append(i)
 
-                if 150 > delta_HDG[i] > tacking_angle and not TWD_is_present:
+                if 150 > delta_COG[i] > tacking_angle and not TWD_is_present:
                     tacks.append(time[i])
                     tacks_indexes.append(i)
 
-                    TWD_tack.append(stats.circmean([HDG_mean_before[i], HDG_mean_after[i]], high=360))
+                    TWD_tack.append(stats.circmean([COG_mean_before[i], COG_mean_after[i]], high=360))
 
     if not TWD_is_present:
         return manoeuvres, tacks, man_indexes, tacks_indexes, TWD_tack
@@ -1568,7 +1586,7 @@ def manoeuvres_1(dt, time, COG, speed, tacking_angle, maneuver_angle, time_1_hdg
         return manoeuvres, man_indexes
 
 
-def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, speed_treshold_perc_tack, speed_treshold_perc_gybe):
+def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, speed_treshold_perc_tack, speed_treshold_perc_gybe, HDG=[]):
     TWA = TWA.tolist()
     #quantile_speed = np.percentile(speed, 25)
     #speed = speed.tolist()
@@ -1579,6 +1597,10 @@ def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, spe
     maneuvers_indexes = []
     tacking_deltaTWA = []
     gybing_deltaTWA = []
+    tacking_deltaCOG = []
+    gybing_deltaCOG = []
+    tacking_deltaHDG = []
+    gybing_deltaHDG = []
 
     index_tack_before_1 = int((tack_wand[0]+tack_wand[2]) / dt)
     index_gybe_before_1 = int((gybe_wand[0]+gybe_wand[2]) / dt)
@@ -1603,19 +1625,27 @@ def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, spe
                 """ TWA WAND AFTER THE POINT WITH INDEX i """
                 TWA_mean_after = angles_stats(TWA[i + index_tack_after_1: i + index_tack_after_2 + 1], 'Mean', twa=True)
                 """ HEADING WAND BEFORE THE POINT WITH INDEX i """
-                HDG_mean_before = stats.circmean(COG[i - index_tack_before_1: i - index_tack_before_2 + 1], high=360)
+                COG_mean_before = stats.circmean(COG[i - index_tack_before_1: i - index_tack_before_2 + 1], high=360)
                 """ TWA WAND AFTER THE POINT WITH INDEX i """
-                HDG_mean_after = stats.circmean(COG[i + index_tack_after_1: i + index_tack_after_2 + 1], high=360)
-                delta_HDG = min(abs(HDG_mean_after - HDG_mean_before), 360 - abs(HDG_mean_after - HDG_mean_before))
+                COG_mean_after = stats.circmean(COG[i + index_tack_after_1: i + index_tack_after_2 + 1], high=360)
+                delta_COG = min(abs(COG_mean_after - COG_mean_before), 360 - abs(COG_mean_after - COG_mean_before))
 
                 SOG_mean_before = np.mean(speed[i - index_tack_before_1: i - index_tack_before_2 + 1])
                 SOG_mean_after = np.mean(speed[i + index_tack_after_1: i + index_tack_after_2 + 1])
 
-                if np.sign(TWA_mean_before) != np.sign(TWA_mean_after) and delta_HDG > 20 and SOG_mean_before>speed_treshold_tack \
+                if np.sign(TWA_mean_before) != np.sign(TWA_mean_after) and delta_COG > 20 and SOG_mean_before>speed_treshold_tack \
                         and SOG_mean_after>speed_treshold_tack:
                     maneuvers_indexes.append(i)
                     tacking_indexes.append(i)
                     tacking_deltaTWA.append(min(abs(TWA_mean_before-TWA_mean_after), 360-abs((TWA_mean_before-TWA_mean_after))))
+                    tacking_deltaCOG.append(delta_COG)
+                    if len(HDG)!=0:
+                        HDG_mean_before = stats.circmean(HDG[i - index_tack_before_1: i - index_tack_before_2 + 1],
+                                                         high=360)
+                        HDG_mean_after = stats.circmean(HDG[i + index_tack_after_1: i + index_tack_after_2 + 1],
+                                                        high=360)
+                        tacking_deltaHDG.append(
+                            min(abs(HDG_mean_before - HDG_mean_after), 360 - abs((HDG_mean_before - HDG_mean_after))))
 
             else:
                 """ TWA WAND BEFORE THE POINT WITH INDEX i """
@@ -1623,22 +1653,31 @@ def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, spe
                 """ TWA WAND AFTER THE POINT WITH INDEX i """
                 TWA_mean_after = angles_stats(TWA[i + index_gybe_after_1: i + index_gybe_after_2 + 1], 'Mean', twa=True)
                 """ HEADING WAND BEFORE THE POINT WITH INDEX i """
-                HDG_mean_before = stats.circmean(COG[i - index_gybe_before_1: i - index_gybe_before_2 + 1], high=360)
+                COG_mean_before = stats.circmean(COG[i - index_gybe_before_1: i - index_gybe_before_2 + 1], high=360)
                 """ TWA WAND AFTER THE POINT WITH INDEX i """
-                HDG_mean_after = stats.circmean(COG[i + index_gybe_after_1: i + index_gybe_after_2 + 1], high=360)
-                delta_HDG = min(abs(HDG_mean_after - HDG_mean_before), 360 - abs(HDG_mean_after - HDG_mean_before))
+                COG_mean_after = stats.circmean(COG[i + index_gybe_after_1: i + index_gybe_after_2 + 1], high=360)
+                delta_COG = min(abs(COG_mean_after - COG_mean_before), 360 - abs(COG_mean_after - COG_mean_before))
 
                 SOG_mean_before = np.mean(speed[i - index_gybe_before_1: i - index_gybe_before_2 + 1])
                 SOG_mean_after = np.mean(speed[i + index_gybe_after_1: i + index_gybe_after_2 + 1])
 
-                if np.sign(TWA_mean_before) != np.sign(TWA_mean_after) and delta_HDG > 20 and SOG_mean_before>speed_treshold_gybe \
+                if np.sign(TWA_mean_before) != np.sign(TWA_mean_after) and delta_COG > 20 and SOG_mean_before>speed_treshold_gybe \
                         and SOG_mean_after>speed_treshold_gybe:
                     maneuvers_indexes.append(i)
                     gybing_indexes.append(i)
                     gybing_deltaTWA.append(min(abs(TWA_mean_before-TWA_mean_after), 360-abs((TWA_mean_before-TWA_mean_after))))
+                    gybing_deltaCOG.append(delta_COG)
+                    if len(HDG)!=0:
+                        HDG_mean_before = stats.circmean(HDG[i - index_gybe_before_1: i - index_gybe_before_2 + 1],
+                                                         high=360)
+                        HDG_mean_after = stats.circmean(HDG[i + index_gybe_after_1: i + index_gybe_after_2 + 1],
+                                                        high=360)
+                        gybing_deltaHDG.append(
+                            min(abs(HDG_mean_before - HDG_mean_after), 360 - abs((HDG_mean_before - HDG_mean_after))))
 
 
-    return maneuvers_indexes, tacking_deltaTWA, tacking_indexes, gybing_deltaTWA, gybing_indexes
+    return maneuvers_indexes, tacking_deltaTWA, tacking_deltaCOG, tacking_deltaHDG, tacking_indexes, gybing_deltaTWA, \
+           gybing_deltaCOG, gybing_deltaHDG, gybing_indexes
 
 
 def calculate_TWD(reading_time, time, TWD_list, man):
@@ -1799,11 +1838,11 @@ def manoeuvres_2(man_indexes_1, TWA, time, dt, mag_hdg, time_1_hdg_before, time_
     index_TWA_2_after = int(time_2_TWA / dt)
     index_max = max(index_TWA_1_before, index_TWA_2_before, index_TWA_1_after, index_TWA_2_after)
 
-    HDG_wand_before = [0] * index_max
-    HDG_wand_after = [0] * index_max
-    HDG_mean_before = [0] * index_max
-    HDG_mean_after = [0] * index_max
-    delta_HDG = [0] * index_max
+    COG_wand_before = [0] * index_max
+    COG_wand_after = [0] * index_max
+    COG_mean_before = [0] * index_max
+    COG_mean_after = [0] * index_max
+    delta_COG = [0] * index_max
     TWA_wand_before = [0] * index_max
     TWA_wand_after = [0] * index_max
     TWA_mean_before = [0] * index_max
@@ -1811,15 +1850,15 @@ def manoeuvres_2(man_indexes_1, TWA, time, dt, mag_hdg, time_1_hdg_before, time_
 
     for i in range(index_max, len(time) - index_max):
         """ HEADING WAND BEFORE THE POINT WITH INDEX i """
-        HDG_wand_before.append(mag_hdg[i - index_2_hdg_before: i - index_1_hdg_before + 1])
-        HDG_mean_before.append(stats.circmean(HDG_wand_before[i], high=360))
+        COG_wand_before.append(mag_hdg[i - index_2_hdg_before: i - index_1_hdg_before + 1])
+        COG_mean_before.append(stats.circmean(COG_wand_before[i], high=360))
 
         """ HEADING WAND AFTER THE POINT WITH INDEX i """
-        HDG_wand_after.append(mag_hdg[i + index_1_hdg_after: i + index_2_hdg_after + 1])
-        HDG_mean_after.append(stats.circmean(HDG_wand_after[i], high=360))
+        COG_wand_after.append(mag_hdg[i + index_1_hdg_after: i + index_2_hdg_after + 1])
+        COG_mean_after.append(stats.circmean(COG_wand_after[i], high=360))
 
-        delta_HDG.append(
-            min(abs(HDG_mean_after[i] - HDG_mean_before[i]), 360 - abs(HDG_mean_after[i] - HDG_mean_before[i])))
+        delta_COG.append(
+            min(abs(COG_mean_after[i] - COG_mean_before[i]), 360 - abs(COG_mean_after[i] - COG_mean_before[i])))
 
         """ TWA WAND BEFORE THE POINT WITH INDEX i """
         TWA_wand_before.append(TWA[i - index_TWA_2_before: i - index_TWA_1_before + 1])
@@ -1837,7 +1876,7 @@ def manoeuvres_2(man_indexes_1, TWA, time, dt, mag_hdg, time_1_hdg_before, time_
             tacking_indexes_2.append(i)
             maneuvers_times_2.append(time[i])
             maneuvers_indexes_2.append(i)
-            TWD_at_man.append(stats.circmean([HDG_mean_before[i], HDG_mean_after[i]], high=360))
+            TWD_at_man.append(stats.circmean([COG_mean_before[i], COG_mean_after[i]], high=360))
 
         elif abs(TWA[i - index_TWA_1_before]) >= up_down_twa_limit and np.sign(TWA_mean_after[i]) != np.sign(
                 TWA_mean_before[i]):
@@ -1845,7 +1884,7 @@ def manoeuvres_2(man_indexes_1, TWA, time, dt, mag_hdg, time_1_hdg_before, time_
             gybing_indexes_2.append(i)
             maneuvers_times_2.append(time[i])
             maneuvers_indexes_2.append(i)
-            TWD_gybe = 180 + stats.circmean([HDG_mean_before[i], HDG_mean_after[i]], high=360)
+            TWD_gybe = 180 + stats.circmean([COG_mean_before[i], COG_mean_after[i]], high=360)
             if TWD_gybe > 360:
                 TWD_gybe -= 360
             TWD_at_man.append(TWD_gybe)

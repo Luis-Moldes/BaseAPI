@@ -73,7 +73,7 @@ def RememberTime(log):
         if turn>180:
             turn=360-turn
 
-        if ((turn > 80) and (0.5*(speed_before+speed_after) > 0.7 * sog_mean)): #man detected!
+        if ((turn > 70) and (turn < 160) and (0.5*(speed_before+speed_after) > 0.7 * sog_mean)): #man detected!
 
             #Extend your range of analysis (before, with this much rang it would not detect mans properly)
 
