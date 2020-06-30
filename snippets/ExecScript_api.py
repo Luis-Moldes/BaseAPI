@@ -35,7 +35,8 @@ def WarpRetrieve(boat_id, event_id, filter, config):
                         if i not in filter.keys(): #If one of them isn't, you create it and set it to None
                                 filter[i]=None
 
-        config_vars=['twd_if_missing','tws_if_missing','upwind_angle', 'downwind_angle', 'tack_detection', 'gybe_detection', 'speedo_calibration']
+        config_vars=['twd_if_missing','tws_if_missing','upwind_angle', 'downwind_angle', 'tack_detection', 'gybe_detection',
+                     'speedo_accuracy_steps', 'compass_accuracy_step']
 
         if config==None:
                 config={}
@@ -75,11 +76,17 @@ def WarpRetrieve(boat_id, event_id, filter, config):
         else:
                 downwind_angle = float(config['downwind_angle'])
 
-        if config['speedo_calibration'] == None:
-                speedovec = [5,8]
+        if config['speedo_accuracy_steps'] == None:
+                speedovec = []
                 warnings.append('- No values for speedometer calibration steps found in input, default values will be used [5,8]')
         else:
-                speedovec = eval(config['speedo_calibration'])
+                speedovec = eval(config['speedo_accuracy_steps'])
+
+        if config['compass_accuracy_step'] == None:
+                compstep=20
+                warnings.append('- No values for speedometer calibration steps found in input, default values will be used [5,8]')
+        else:
+                compstep = int(config['compass_accuracy_step'])
 
 
 
@@ -292,43 +299,56 @@ def WarpRetrieve(boat_id, event_id, filter, config):
                 warnings.append('- Sailing modes info was found in database!')
 
         #TIME REDUCTION
+        if 'TWD' not in log.columns and 'COG' in log.columns and 'TWA' in log.columns:
+                log['TWD'] =[to360(i) for i in log['COG'] + log['TWA']]
 
         if 'TWD' not in log.columns:
                 if config['twd_if_missing'] is None:
                         log['TWD'] = RememberTime(log)
-                        log['TWS'] = pd.Series(np.ones(len(log)) * 10)
-                        warnings.append('- No info about wind found in database or input, it will be estimated')
+                        warnings.append('- No info about wind direction found in database or input, it will be estimated')
                 else:
                         log['TWD'] = pd.Series(np.ones(len(log)) * float(config['twd_if_missing']))
-                        log['TWS'] = pd.Series(np.ones(len(log)) * float(config['tws_if_missing']))
 
                 twdmean = log['TWD'][0]
-                twsmean = log['TWS'][0]
                 log5min['TWD'] = log['TWD'][0]
-                log5min['TWS'] = log['TWS'][0]
                 log60min['TWD'] = log['TWD'][0]
-                log60min['TWS'] = log['TWS'][0]
 
-                twd_left= [log['TWD'][0]]*3
+                twd_left= [round(log['TWD'][0],1)]*3
                 twd_right = twd_left
-                twsmax= [log['TWS'][0]]*3
-                twsmin = [log['TWS'][0]] * 3
 
         else:
                 from scipy import stats
                 twd_left= []
                 twd_right = []
-                twsmax= []
-                twsmin = []
-                twdmean = stats.circmean(log.TWD, high=360)
-                twsmean = np.mean(log.TWS)
+                twdmean = round(stats.circmean(log.TWD, high=360),1)
                 # twd5min=log.TWD.rolling(int(min(300 / dt, len(log)))).mean()
                 for ilog in [log, log5min, log60min]:
-                        twd_left.append(to360(np.nanmin([to180(i-twdmean) for i in ilog.TWD])+twdmean))
-                        twd_right.append(to360(np.nanmax([to180(i-twdmean) for i in ilog.TWD])+twdmean))
+                        twd_left.append(round(to360(np.nanmin([to180(i-twdmean) for i in ilog.TWD])+twdmean),1))
+                        twd_right.append(round(to360(np.nanmax([to180(i-twdmean) for i in ilog.TWD])+twdmean),1))
 
-                        twsmax.append(np.nanmax(ilog.TWS))
-                        twsmin.append(np.nanmin(ilog.TWS))
+
+        if 'TWS' not in log.columns:
+                if config['tws_if_missing'] is None:
+                        log['TWS'] = pd.Series(np.ones(len(log)) * 10)
+                        warnings.append('- No info about wind speed found in database or input')
+                else:
+                        log['TWS'] = pd.Series(np.ones(len(log)) * float(config['tws_if_missing']))
+                twsmean = round(log['TWS'][0],2)
+                log5min['TWS'] = log['TWS'][0]
+                log60min['TWS'] = log['TWS'][0]
+
+                twsmax= [round(log['TWS'][0],2)]*3
+                twsmin = [round(log['TWS'][0],2)]*3
+
+        else:
+                from scipy import stats
+                twsmax= []
+                twsmin = []
+                twsmean = round(np.mean(log.TWS),2)
+                # twd5min=log.TWD.rolling(int(min(300 / dt, len(log)))).mean()
+                for ilog in [log, log5min, log60min]:
+                        twsmax.append(round(np.nanmax(ilog.TWS),1))
+                        twsmin.append(round(np.nanmin(ilog.TWS),1))
 
         if 'TWA' not in log.columns:
                 log['TWA'] = calculate_TWA(log.Date_Time, log.TWD, log.COG)
@@ -357,23 +377,25 @@ def WarpRetrieve(boat_id, event_id, filter, config):
         # log5 = log.rolling(int(min(300/dt,len(log))))
         # log60 = log.rolling(int(min(300/dt,len(log))))
         if 'HDG' in log.columns:
-                [maneuvers_indexes, tacking_deltaTWA, tacking_deltaCOG, tacking_deltaHDG, tacking_indexes, gybing_deltaTWA, \
-                        gybing_deltaCOG, gybing_deltaHDG, gybing_indexes]= manoeuvres_gpx_easy_API(dt, log.Date_Time, log.TWA,
-                        log.SOG_Kts, log.COG, tack_wand, gybe_wand, speed_treshold_perc_tack, speed_treshold_perc_gybe, HDG=log.HDG)
+                [maneuvers_indexes, tacking_deltaTWA, tacking_deltaCOG, tacking_deltaHDG,tacking_deltaTWD, tacking_indexes, gybing_deltaTWA, \
+                        gybing_deltaCOG, gybing_deltaHDG,gybing_deltaTWD, gybing_indexes]= manoeuvres_gpx_easy_API(dt, log.Date_Time, log.TWA,
+                        log.SOG_Kts, log.COG, log.TWD, tack_wand, gybe_wand, speed_treshold_perc_tack, speed_treshold_perc_gybe, HDG=log.HDG)
                 deltatackHDG = np.mean(tacking_deltaHDG)
                 deltagybeHDG = np.mean(gybing_deltaHDG)
 
         else:
-                [maneuvers_indexes, tacking_deltaTWA, tacking_deltaCOG, tacking_deltaHDG, tacking_indexes, gybing_deltaTWA, \
-                        gybing_deltaCOG, gybing_deltaHDG, gybing_indexes]= manoeuvres_gpx_easy_API(dt, log.Date_Time, log.TWA,
+                [maneuvers_indexes, tacking_deltaTWA, tacking_deltaCOG, tacking_deltaHDG,tacking_deltaTWD, tacking_indexes, gybing_deltaTWA, \
+                        gybing_deltaCOG, gybing_deltaHDG,gybing_deltaTWD, gybing_indexes]= manoeuvres_gpx_easy_API(dt, log.Date_Time, log.TWA,
                         log.SOG_Kts, log.COG, tack_wand, gybe_wand, speed_treshold_perc_tack, speed_treshold_perc_gybe)
                 deltatackHDG = 'No info in database about heading'
                 deltagybeHDG = 'No info in database about heading'
 
-        deltatackTWA= np.mean(tacking_deltaTWA)
-        deltagybeTWA = np.mean(gybing_deltaTWA)
-        deltatackCOG= np.mean(tacking_deltaCOG)
-        deltagybeCOG = np.mean(gybing_deltaCOG)
+        deltatackTWA= round(np.mean(tacking_deltaTWA),2)
+        deltagybeTWA =round( np.mean(gybing_deltaTWA),2)
+        deltatackCOG= round(np.mean(tacking_deltaCOG),2)
+        deltagybeCOG =round( np.mean(gybing_deltaCOG),2)
+        deltatackTWD= round(np.mean(tacking_deltaTWD),2)
+        deltagybeTWD =round( np.mean(gybing_deltaTWD),2)
 
         # HERE WOULD COME THE FILTERS
 
@@ -397,12 +419,11 @@ def WarpRetrieve(boat_id, event_id, filter, config):
                 logrch.append(ilog[(abs(ilog.TWA) < downwind_angle) & (abs(ilog.TWA) > upwind_angle)])
 
         for mlog in [logup, logdn, logrch]:
-                sogmean.append(np.mean(mlog.SOG_Kts))
+                sogmean.append(round(np.mean(mlog.SOG_Kts),2))
                 time.append(len(mlog)*dt)
-                distance.append(sum(mlog.Dist))
-                twamean.append(angles_stats([abs(i) for i in mlog.TWA], 'Mean', twa=True))
-                if 'DeltaCOG' in log.columns:
-                        compass_accuracy.append(np.mean(mlog.DeltaCOG))
+                distance.append(int(sum(mlog.Dist)))
+                twamean.append(round(angles_stats([abs(i) for i in mlog.TWA], 'Mean', twa=True),1))
+
 
         logsup = []
         logsdn = []
@@ -414,28 +435,51 @@ def WarpRetrieve(boat_id, event_id, filter, config):
                 logsrch.append(ilog[(abs(ilog.TWA) < downwind_angle) & (abs(ilog.TWA) > upwind_angle)])
 
         for mlog in [logsup, logsdn, logsrch]:
-                sogmax.append(max(mlog[0].SOG_Kts, default='No values in this category'))
-                sogmax5.append(max(mlog[1].SOG_Kts, default='No values in this category'))
-                sogmax60.append(max(mlog[2].SOG_Kts, default='No values in this category'))
+                an=max(mlog[0].SOG_Kts, default='null')
+                if an!='null':
+                        an=round(an,2)
+                sogmax.append(an)
+
+                an=max(mlog[1].SOG_Kts, default='null')
+                if an!='null':
+                        an=round(an,2)
+                sogmax5.append(an)
+
+                an=max(mlog[2].SOG_Kts, default='null')
+                if an!='null':
+                        an=round(an,2)
+                sogmax60.append(an)
+
+                # sogmax5.append(max(mlog[1].SOG_Kts, default='null'))
+                # sogmax60.append(max(mlog[2].SOG_Kts, default='null'))
 
 
         if 'DeltaCOG' in log.columns:
-                compass_accuracy.append(np.mean(log[log.TWA<0].DeltaCOG))
-                compass_accuracy.append(np.mean(log[log.TWA>0].DeltaCOG))
-                compassdict = {"Upwind": compass_accuracy[0], "Downwind": compass_accuracy[1], "Reaching": compass_accuracy[2]
-                        , "Port": compass_accuracy[3], "Starboard": compass_accuracy[4]}
+                compassdict = []
+                cvec=list(pd.Series(range(int(np.ceil(360/compstep))))*compstep)+[360]
+                # if cvec[-1]!=360:
+                #         cvec=cvec+[360]
+                for i in range(len(cvec)-1):
+                        compassdict.append({'Min_Angle':cvec[i], 'Max_Angle':cvec[i+1], 'Accuracy':round(
+                                np.mean(log.DeltaCOG[(log.COG>cvec[i]) & (log.COG<cvec[i+1])]),2)})
+
         else:
                 compassdict = 'Unavailable: no Heading information in database'
 
+        if speedovec==[]:
+                speedcap=max(log.SOG_Kts)
+                speedovec=[np.ceil(speedcap*i/4) for i in range(1,5)]
+
         speedovec=[0]+speedovec
         if 'DeltaSOG' in log.columns:
-                speedodict = {}
+                speedodict = []
                 for i in range(len(speedovec)):
                         if i!=len(speedovec)-1:
-                                speedodict[str(speedovec[i])+" to "+str(speedovec[i+1])+" kts"] = np.mean(log.DeltaSOG[(log.SOG_Kts>
-                                        speedovec[i]) & (log.SOG_Kts<speedovec[i+1])])
+                                speedodict.append({'Min_Speed':speedovec[i], 'Max_Speed':speedovec[i+1], 'Accuracy':round(
+                                        np.mean(log.DeltaSOG[(log.SOG_Kts>speedovec[i]) & (log.SOG_Kts<speedovec[i+1])]),2)})
                         else:
-                                speedodict[str(speedovec[i])+" kts to Inf"] = np.mean(log.DeltaSOG[(log.SOG_Kts > speedovec[i])])
+                                speedodict.append({'Min_Speed':speedovec[i], 'Max_Speed':round(max(log.SOG_Kts),2), 'Accuracy':round(
+                                        np.mean(log.DeltaSOG[(log.SOG_Kts > speedovec[i])]),2)})
         else:
                 speedodict = 'Unavailable: no BSP information in database'
 
@@ -444,22 +488,22 @@ def WarpRetrieve(boat_id, event_id, filter, config):
         #         "Tack_Delta_TWA_Avg":deltatack, "Gybe_Delta_TWA_Avg":deltagybe, "Compass_Accuracy":compass_accuracy, "Speedometer_Accuracy":speedo_accuracy,
         #         "Warnings":warnings}
 
-        return {"SOG":{"Average":{"Upwind":sogmean[0],"Downwind":sogmean[1],"Reaching":sogmean[2]},
+        return {"SOG":{"Average":{"Upwind":round(sogmean[0],2),"Downwind":round(sogmean[1],2),"Reaching":round(sogmean[2],2)},
                         "Max":{"Upwind":sogmax[0],"Downwind":sogmax[1],"Reaching":sogmax[2]},
                         "Max_5min":{"Upwind":sogmax5[0],"Downwind":sogmax5[1],"Reaching":sogmax5[2]},
                         "Max_1h":{"Upwind":sogmax60[0],"Downwind":sogmax60[1],"Reaching":sogmax60[2]}},
                 "Duration_h":{"Upwind":time[0]/3600,"Downwind":time[1]/3600,"Reaching":time[2]/3600},
                 "Distances_m":{"Upwind":distance[0],"Downwind":distance[1],"Reaching":distance[2]},
                 "TWA":{"Average":{"Upwind":twamean[0],"Downwind":twamean[1],"Reaching":twamean[2]}},
-                "TWD":{"Max_Left":{'1s':twd_left[0],'5min':twd_left[1],'1h':twd_left[2]},
-                       "Max_Right":{'1s':twd_right[0],'5min':twd_right[1],'1h':twd_right[2]},
+                "TWD":{"Max_Left":{'Max':twd_left[0],'5min':twd_left[1],'1h':twd_left[2]},
+                       "Max_Right":{'Max':twd_right[0],'5min':twd_right[1],'1h':twd_right[2]},
                        "Average":twdmean},
-                "TWS":{"Max":{"1s":twsmax[0],"5min":twsmax[1],"1h":twsmax[2]},
-                       "Min": {"1s": twsmin[0], "5min": twsmin[1], "1h": twsmin[2]},
+                "TWS":{"Max":{"Max":twsmax[0],"5min":twsmax[1],"1h":twsmax[2]},
+                       "Min": {"Max": twsmin[0], "5min": twsmin[1], "1h": twsmin[2]},
                         "Average":twsmean},
-                "Maneuvers":{"Tack":{"Delta_TWA_Avg":deltatackTWA,"Delta_COG_Avg":deltatackCOG,"Delta_HDG_Avg":deltatackHDG},
-                             "Gybe":{"Delta_TWA_Avg":deltagybeTWA,"Delta_COG_Avg":deltagybeCOG,"Delta_HDG_Avg":deltagybeHDG}},
-                "Compass_Accuracy":compassdict, "Speedometer_Accuracy":speedodict,
+                "Maneuvers":{"Tack":{"Number":len(tacking_deltaTWA),"Delta_TWA_Avg":deltatackTWA,"Delta_COG_Avg":deltatackCOG,"Delta_HDG_Avg":deltatackHDG,"Delta_TWD_Avg":deltatackTWD},
+                             "Gybe":{"Number":len(gybing_deltaTWA),"Delta_TWA_Avg":deltagybeTWA,"Delta_COG_Avg":deltagybeCOG,"Delta_HDG_Avg":deltagybeHDG,"Delta_TWD_Avg":deltagybeTWD}},
+                "Compass_Calibration":compassdict, "Speedometer_Calibration":speedodict,
                 "Warnings":warnings}
 
 

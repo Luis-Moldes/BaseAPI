@@ -1586,7 +1586,7 @@ def manoeuvres_1(dt, time, COG, speed, tacking_angle, maneuver_angle, time_1_hdg
         return manoeuvres, man_indexes
 
 
-def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, speed_treshold_perc_tack, speed_treshold_perc_gybe, HDG=[]):
+def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, TWD, tack_wand, gybe_wand, speed_treshold_perc_tack, speed_treshold_perc_gybe, HDG=[]):
     TWA = TWA.tolist()
     #quantile_speed = np.percentile(speed, 25)
     #speed = speed.tolist()
@@ -1601,6 +1601,8 @@ def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, spe
     gybing_deltaCOG = []
     tacking_deltaHDG = []
     gybing_deltaHDG = []
+    tacking_deltaTWD = []
+    gybing_deltaTWD = []
 
     index_tack_before_1 = int((tack_wand[0]+tack_wand[2]) / dt)
     index_gybe_before_1 = int((gybe_wand[0]+gybe_wand[2]) / dt)
@@ -1639,6 +1641,13 @@ def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, spe
                     tacking_indexes.append(i)
                     tacking_deltaTWA.append(min(abs(TWA_mean_before-TWA_mean_after), 360-abs((TWA_mean_before-TWA_mean_after))))
                     tacking_deltaCOG.append(delta_COG)
+
+                    TWD_mean_before = stats.circmean(TWD[i - index_tack_before_1: i - index_tack_before_2 + 1],
+                                                     high=360)
+                    TWD_mean_after = stats.circmean(TWD[i + index_tack_after_1: i + index_tack_after_2 + 1],
+                                                    high=360)
+                    tacking_deltaTWD.append(min(abs(TWD_mean_before-TWD_mean_after), 360-abs((TWD_mean_before-TWD_mean_after))))
+
                     if len(HDG)!=0:
                         HDG_mean_before = stats.circmean(HDG[i - index_tack_before_1: i - index_tack_before_2 + 1],
                                                          high=360)
@@ -1667,6 +1676,12 @@ def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, spe
                     gybing_indexes.append(i)
                     gybing_deltaTWA.append(min(abs(TWA_mean_before-TWA_mean_after), 360-abs((TWA_mean_before-TWA_mean_after))))
                     gybing_deltaCOG.append(delta_COG)
+
+                    TWD_mean_before = stats.circmean(TWD[i - index_gybe_before_1: i - index_gybe_before_2 + 1],
+                                                     high=360)
+                    TWD_mean_after = stats.circmean(TWD[i + index_gybe_after_1: i + index_gybe_after_2 + 1],
+                                                    high=360)
+                    gybing_deltaTWD.append(min(abs(TWD_mean_before-TWD_mean_after), 360-abs((TWD_mean_before-TWD_mean_after))))
                     if len(HDG)!=0:
                         HDG_mean_before = stats.circmean(HDG[i - index_gybe_before_1: i - index_gybe_before_2 + 1],
                                                          high=360)
@@ -1676,8 +1691,8 @@ def manoeuvres_gpx_easy_API(dt, time, TWA, speed, COG, tack_wand, gybe_wand, spe
                             min(abs(HDG_mean_before - HDG_mean_after), 360 - abs((HDG_mean_before - HDG_mean_after))))
 
 
-    return maneuvers_indexes, tacking_deltaTWA, tacking_deltaCOG, tacking_deltaHDG, tacking_indexes, gybing_deltaTWA, \
-           gybing_deltaCOG, gybing_deltaHDG, gybing_indexes
+    return maneuvers_indexes, tacking_deltaTWA, tacking_deltaCOG, tacking_deltaHDG, tacking_deltaTWD, tacking_indexes, gybing_deltaTWA, \
+           gybing_deltaCOG, gybing_deltaHDG, gybing_deltaTWD, gybing_indexes
 
 
 def calculate_TWD(reading_time, time, TWD_list, man):
