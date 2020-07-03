@@ -467,9 +467,10 @@ def WarpRetrieve(boat_id, event_id, filter, config):
                 compassdict = 'Unavailable: no Heading information in database'
 
         if speedovec==[]:
-                speedcap=max(log.SOG_Kts)
-                step=np.floor(speedcap/4)
-                speedovec=[step*i for i in range(0,5)]+[speedcap]
+                startsog=min(log.SOG_Kts)
+                step=np.floor((max(log.SOG_Kts)-startsog)/4)
+                startsog=np.floor(startsog)
+                speedovec=np.floor([startsog+step*i for i in range(0,5)])
 
         speedovec=[0]+speedovec
         if 'DeltaSOG' in log.columns:
