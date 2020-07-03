@@ -468,7 +468,7 @@ def WarpRetrieve(boat_id, event_id, filter, config):
 
         if speedovec==[]:
                 speedcap=max(log.SOG_Kts)
-                step=floor(speedcap/4)
+                step=np.floor(speedcap/4)
                 speedovec=[step*i for i in range(0,5)]+[speedcap]
 
         speedovec=[0]+speedovec
