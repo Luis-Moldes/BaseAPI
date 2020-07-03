@@ -78,13 +78,13 @@ def WarpRetrieve(boat_id, event_id, filter, config):
 
         if config['speedo_accuracy_steps'] == None:
                 speedovec = []
-                warnings.append('- No values for speedometer calibration steps found in input, default values will be used [5,8]')
+                warnings.append('- No values for speedometer calibration steps found in input, default values based on speed will be used')
         else:
                 speedovec = eval(config['speedo_accuracy_steps'])
 
         if config['compass_accuracy_step'] == None:
                 compstep=20
-                warnings.append('- No values for speedometer calibration steps found in input, default values will be used [5,8]')
+                warnings.append('- No values for compass calibration step found in input, it will be set to 20º')
         else:
                 compstep = int(config['compass_accuracy_step'])
 
@@ -468,7 +468,8 @@ def WarpRetrieve(boat_id, event_id, filter, config):
 
         if speedovec==[]:
                 speedcap=max(log.SOG_Kts)
-                speedovec=[np.floor(speedcap*i/4) for i in range(1,5)]
+                step=floor(speedcap/4)
+                speedovec=[step*i for i in range(0,5)]+[speedcap]
 
         speedovec=[0]+speedovec
         if 'DeltaSOG' in log.columns:
