@@ -460,8 +460,9 @@ def WarpRetrieve(boat_id, event_id, filter, config):
                 # if cvec[-1]!=360:
                 #         cvec=cvec+[360]
                 for i in range(len(cvec)-1):
+                        section=log.DeltaCOG[(log.COG>cvec[i]) & (log.COG<cvec[i+1])]
                         compassdict.append({'Min_Angle':cvec[i], 'Max_Angle':cvec[i+1], 'Accuracy':round(
-                                np.mean(log.DeltaCOG[(log.COG>cvec[i]) & (log.COG<cvec[i+1])]),2)})
+                                np.mean(section,2)), 'Point Count':len(section)})
 
         else:
                 compassdict = 'Unavailable: no Heading information in database'
@@ -475,11 +476,13 @@ def WarpRetrieve(boat_id, event_id, filter, config):
                 speedodict = []
                 for i in range(len(speedovec)):
                         if i!=len(speedovec)-1:
+                                section=log.DeltaSOG[(log.SOG_Kts>speedovec[i]) & (log.SOG_Kts<speedovec[i+1])]
                                 speedodict.append({'Min_Speed':speedovec[i], 'Max_Speed':speedovec[i+1], 'Accuracy':round(
-                                        np.mean(log.DeltaSOG[(log.SOG_Kts>speedovec[i]) & (log.SOG_Kts<speedovec[i+1])]),2)})
+                                        np.mean(section),2), 'Point Count':len(section)})
                         else:
+                                section=log.DeltaSOG[(log.SOG_Kts > speedovec[i])]
                                 speedodict.append({'Min_Speed':speedovec[i], 'Max_Speed':round(max(log.SOG_Kts),2), 'Accuracy':round(
-                                        np.mean(log.DeltaSOG[(log.SOG_Kts > speedovec[i])]),2)})
+                                        np.mean(section),2), 'Point Count':len(section)})
         else:
                 speedodict = 'Unavailable: no BSP information in database'
 
@@ -489,20 +492,22 @@ def WarpRetrieve(boat_id, event_id, filter, config):
         #         "Warnings":warnings}
 
         return {"SOG":{"Average":{"Upwind":round(sogmean[0],2),"Downwind":round(sogmean[1],2),"Reaching":round(sogmean[2],2)},
-                        "Max":{"Upwind":sogmax[0],"Downwind":sogmax[1],"Reaching":sogmax[2]},
+                        "Raw":{"Upwind":sogmax[0],"Downwind":sogmax[1],"Reaching":sogmax[2]},
                         "Max_5min":{"Upwind":sogmax5[0],"Downwind":sogmax5[1],"Reaching":sogmax5[2]},
                         "Max_1h":{"Upwind":sogmax60[0],"Downwind":sogmax60[1],"Reaching":sogmax60[2]}},
+                "Point Count":{"Upwind Port":len(logup[logup.TWA<0]),"Upwind Starboard":len(logup[logup.TWA>0]),
+                               "Downwind Port":len(logdn[logdn.TWA<0]),"Downwind Starboard":len(logdn[logdn.TWA>0]),"Reaching":len(logrch)},
                 "Duration_h":{"Upwind":round(time[0]/3600,2),"Downwind":round(time[1]/3600,2),"Reaching":round(time[2]/3600,2)},
                 "Distances_m":{"Upwind":distance[0],"Downwind":distance[1],"Reaching":distance[2]},
                 "TWA":{"Average":{"Upwind":twamean[0],"Downwind":twamean[1],"Reaching":twamean[2]}},
-                "TWD":{"Max_Left":{'Max':twd_left[0],'5min':twd_left[1],'1h':twd_left[2]},
-                       "Max_Right":{'Max':twd_right[0],'5min':twd_right[1],'1h':twd_right[2]},
+                "TWD":{"Max_Left":{'Raw':twd_left[0],'5min':twd_left[1],'1h':twd_left[2]},
+                       "Max_Right":{'Raw':twd_right[0],'5min':twd_right[1],'1h':twd_right[2]},
                        "Average":twdmean},
-                "TWS":{"Max":{"Max":twsmax[0],"5min":twsmax[1],"1h":twsmax[2]},
-                       "Min": {"Max": twsmin[0], "5min": twsmin[1], "1h": twsmin[2]},
+                "TWS":{"Max":{"Raw":twsmax[0],"5min":twsmax[1],"1h":twsmax[2]},
+                       "Min": {"Raw": twsmin[0], "5min": twsmin[1], "1h": twsmin[2]},
                         "Average":twsmean},
-                "Maneuvers":{"Tack":{"Number":len(tacking_deltaTWA),"Delta_TWA_Avg":deltatackTWA,"Delta_COG_Avg":deltatackCOG,"Delta_HDG_Avg":deltatackHDG,"Delta_TWD_Avg":deltatackTWD},
-                             "Gybe":{"Number":len(gybing_deltaTWA),"Delta_TWA_Avg":deltagybeTWA,"Delta_COG_Avg":deltagybeCOG,"Delta_HDG_Avg":deltagybeHDG,"Delta_TWD_Avg":deltagybeTWD}},
+                "Maneuvers":{"Tack":{"Count":len(tacking_deltaTWA),"Delta_TWA_Avg":deltatackTWA,"Delta_COG_Avg":deltatackCOG,"Delta_HDG_Avg":deltatackHDG,"Delta_TWD_Avg":deltatackTWD},
+                             "Gybe":{"Count":len(gybing_deltaTWA),"Delta_TWA_Avg":deltagybeTWA,"Delta_COG_Avg":deltagybeCOG,"Delta_HDG_Avg":deltagybeHDG,"Delta_TWD_Avg":deltagybeTWD}},
                 "Compass_Calibration":compassdict, "Speedometer_Calibration":speedodict,
                 "Warnings":warnings}
 
