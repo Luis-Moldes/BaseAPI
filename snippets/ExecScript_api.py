@@ -380,8 +380,8 @@ def WarpRetrieve(boat_id, event_id, filter, config):
                 [maneuvers_indexes, tacking_deltaTWA, tacking_deltaCOG, tacking_deltaHDG,tacking_deltaTWD, tacking_indexes, gybing_deltaTWA, \
                         gybing_deltaCOG, gybing_deltaHDG,gybing_deltaTWD, gybing_indexes]= manoeuvres_gpx_easy_API(dt, log.Date_Time, log.TWA,
                         log.SOG_Kts, log.COG, log.TWD, tack_wand, gybe_wand, speed_treshold_perc_tack, speed_treshold_perc_gybe, HDG=log.HDG)
-                deltatackHDG = np.mean(tacking_deltaHDG)
-                deltagybeHDG = np.mean(gybing_deltaHDG)
+                deltatackHDG = round(np.mean(tacking_deltaHDG),2)
+                deltagybeHDG = round(np.mean(gybing_deltaHDG),2)
 
         else:
                 [maneuvers_indexes, tacking_deltaTWA, tacking_deltaCOG, tacking_deltaHDG,tacking_deltaTWD, tacking_indexes, gybing_deltaTWA, \
@@ -492,7 +492,7 @@ def WarpRetrieve(boat_id, event_id, filter, config):
                         "Max":{"Upwind":sogmax[0],"Downwind":sogmax[1],"Reaching":sogmax[2]},
                         "Max_5min":{"Upwind":sogmax5[0],"Downwind":sogmax5[1],"Reaching":sogmax5[2]},
                         "Max_1h":{"Upwind":sogmax60[0],"Downwind":sogmax60[1],"Reaching":sogmax60[2]}},
-                "Duration_h":{"Upwind":time[0]/3600,"Downwind":time[1]/3600,"Reaching":time[2]/3600},
+                "Duration_h":{"Upwind":round(time[0]/3600,2),"Downwind":round(time[1]/3600,2),"Reaching":round(time[2]/3600,2)},
                 "Distances_m":{"Upwind":distance[0],"Downwind":distance[1],"Reaching":distance[2]},
                 "TWA":{"Average":{"Upwind":twamean[0],"Downwind":twamean[1],"Reaching":twamean[2]}},
                 "TWD":{"Max_Left":{'Max':twd_left[0],'5min':twd_left[1],'1h':twd_left[2]},
