@@ -518,8 +518,8 @@ def WarpRetrieve(boat_id, event_id, filter, config, premium):
 # a=WarpRetrieve('cdc3', 'gascogne4552019', None, {"ass":2,"boo":'justin'}, 10, 10, None, None, None, None, None, None)
 # a=WarpRetrieve('cdc3', 'entrainement_jan2020_d2_gps_only', None, None, None, None, None, None, None, None, None, None)
 
-a=WarpRetrieve('cdc3', 'gascogne4552019', {"start_time":"2019-05-16 13:00:00", "stop_time":"2019-05-16 16:00:00",
-		"only_while_sailing":"True"}, None)
+# a=WarpRetrieve('cdc3', 'gascogne4552019', {"start_time":"2019-05-16 13:00:00", "stop_time":"2019-05-16 16:00:00",
+# 		"only_while_sailing":"True"}, None)
 
 # entrainement_jan2020_d2_gps_only entrainement_oct2020_d3_with_gaps gascogne4552019 gascogne4552019_10k entrainement_oct2020_d3_no_gap
 
