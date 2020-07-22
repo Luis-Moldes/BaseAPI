@@ -22,9 +22,10 @@ def WarpRetrieve(boat_id, event_id, filter, config, premium):
 
         warnings=[]
 
-        if premium==None:
-                premium=False
-
+        if premium=='True':
+                premium=True
+        else:
+                premium = False
         # Checking how complete the dict is isn't easy, there might be a whole field or just a variable missing
 
         filter_vars=['start_time','stop_time','only_while_sailing']
@@ -493,33 +494,41 @@ def WarpRetrieve(boat_id, event_id, filter, config, premium):
         #         "Distances":distance, "Mean_TWA":twamean, "TWD_Max_Left":twd_left, "TWD_Max_Right":twd_right,
         #         "Tack_Delta_TWA_Avg":deltatack, "Gybe_Delta_TWA_Avg":deltagybe, "Compass_Accuracy":compass_accuracy, "Speedometer_Accuracy":speedo_accuracy,
         #         "Warnings":warnings}
-
-        return {"SOG":{"Average":{"Upwind":round(sogmean[0],2),"Downwind":round(sogmean[1],2),"Reaching":round(sogmean[2],2)},
-                        "Raw":{"Upwind":sogmax[0],"Downwind":sogmax[1],"Reaching":sogmax[2]},
-                        "Max_5min":{"Upwind":sogmax5[0],"Downwind":sogmax5[1],"Reaching":sogmax5[2]},
-                        "Max_1h":{"Upwind":sogmax60[0],"Downwind":sogmax60[1],"Reaching":sogmax60[2]}},
-                "Point Count":{"Upwind Port":len(logup[logup.TWA<0]),"Upwind Starboard":len(logup[logup.TWA>0]),
-                               "Downwind Port":len(logdn[logdn.TWA<0]),"Downwind Starboard":len(logdn[logdn.TWA>0]),"Reaching":len(logrch)},
-                "Duration_h":{"Upwind":round(time[0]/3600,2),"Downwind":round(time[1]/3600,2),"Reaching":round(time[2]/3600,2)},
-                "Distances_m":{"Upwind":distance[0],"Downwind":distance[1],"Reaching":distance[2]},
-                "TWA":{"Average":{"Upwind":twamean[0],"Downwind":twamean[1],"Reaching":twamean[2]}},
-                "TWD":{"Max_Left":{'Raw':twd_left[0],'5min':twd_left[1],'1h':twd_left[2]},
-                       "Max_Right":{'Raw':twd_right[0],'5min':twd_right[1],'1h':twd_right[2]},
-                       "Average":twdmean},
-                "TWS":{"Max":{"Raw":twsmax[0],"5min":twsmax[1],"1h":twsmax[2]},
-                       "Min": {"Raw": twsmin[0], "5min": twsmin[1], "1h": twsmin[2]},
-                        "Average":twsmean},
-                "Maneuvers":{"Tack":{"Count":len(tacking_deltaTWA),"Delta_TWA_Avg":deltatackTWA,"Delta_COG_Avg":deltatackCOG,"Delta_HDG_Avg":deltatackHDG,"Delta_TWD_Avg":deltatackTWD},
-                             "Gybe":{"Count":len(gybing_deltaTWA),"Delta_TWA_Avg":deltagybeTWA,"Delta_COG_Avg":deltagybeCOG,"Delta_HDG_Avg":deltagybeHDG,"Delta_TWD_Avg":deltagybeTWD}},
-                "Compass_Calibration":compassdict, "Speedometer_Calibration":speedodict,
-                "Warnings":warnings}
+        if premium:
+                return {"children": [{"type": "Label", "forceCreate": true, "text": "Time [s] spent in each sailing mode","fontSize": 15,
+                    "align": "center"}],
+                  "series": [{"type": "PieSeries", "dataFields": {"value": "Seconds", "category": "Mode"}}],
+                  "data": [{"Mode": "Upwind", "Seconds": time[0]},
+                           {"Mode": "Downwind", "Seconds": time[1]},
+                           {"Mode": "Reaching", "Seconds": time[2]}],
+                  "legend": {}}
+        else:
+                return {"SOG":{"Average":{"Upwind":round(sogmean[0],2),"Downwind":round(sogmean[1],2),"Reaching":round(sogmean[2],2)},
+                                "Raw":{"Upwind":sogmax[0],"Downwind":sogmax[1],"Reaching":sogmax[2]},
+                                "Max_5min":{"Upwind":sogmax5[0],"Downwind":sogmax5[1],"Reaching":sogmax5[2]},
+                                "Max_1h":{"Upwind":sogmax60[0],"Downwind":sogmax60[1],"Reaching":sogmax60[2]}},
+                        "Point Count":{"Upwind Port":len(logup[logup.TWA<0]),"Upwind Starboard":len(logup[logup.TWA>0]),
+                                       "Downwind Port":len(logdn[logdn.TWA<0]),"Downwind Starboard":len(logdn[logdn.TWA>0]),"Reaching":len(logrch)},
+                        "Duration_h":{"Upwind":round(time[0]/3600,2),"Downwind":round(time[1]/3600,2),"Reaching":round(time[2]/3600,2)},
+                        "Distances_m":{"Upwind":distance[0],"Downwind":distance[1],"Reaching":distance[2]},
+                        "TWA":{"Average":{"Upwind":twamean[0],"Downwind":twamean[1],"Reaching":twamean[2]}},
+                        "TWD":{"Max_Left":{'Raw':twd_left[0],'5min':twd_left[1],'1h':twd_left[2]},
+                               "Max_Right":{'Raw':twd_right[0],'5min':twd_right[1],'1h':twd_right[2]},
+                               "Average":twdmean},
+                        "TWS":{"Max":{"Raw":twsmax[0],"5min":twsmax[1],"1h":twsmax[2]},
+                               "Min": {"Raw": twsmin[0], "5min": twsmin[1], "1h": twsmin[2]},
+                                "Average":twsmean},
+                        "Maneuvers":{"Tack":{"Count":len(tacking_deltaTWA),"Delta_TWA_Avg":deltatackTWA,"Delta_COG_Avg":deltatackCOG,"Delta_HDG_Avg":deltatackHDG,"Delta_TWD_Avg":deltatackTWD},
+                                     "Gybe":{"Count":len(gybing_deltaTWA),"Delta_TWA_Avg":deltagybeTWA,"Delta_COG_Avg":deltagybeCOG,"Delta_HDG_Avg":deltagybeHDG,"Delta_TWD_Avg":deltagybeTWD}},
+                        "Compass_Calibration":compassdict, "Speedometer_Calibration":speedodict,
+                        "Warnings":warnings}
 
 
 # a=WarpRetrieve('cdc3', 'gascogne4552019', None, {"ass":2,"boo":'justin'}, 10, 10, None, None, None, None, None, None)
 # a=WarpRetrieve('cdc3', 'entrainement_jan2020_d2_gps_only', None, None, None, None, None, None, None, None, None, None)
 
-# a=WarpRetrieve('cdc3', 'gascogne4552019', {"start_time":"2019-05-16 13:00:00", "stop_time":"2019-05-16 16:00:00",
-# 		"only_while_sailing":"True"}, None)
+a=WarpRetrieve('cdc3', 'gascogne4552019', {"start_time":"2019-05-16 13:00:00", "stop_time":"2019-05-16 16:00:00",
+		"only_while_sailing":"True"}, None)
 
 # entrainement_jan2020_d2_gps_only entrainement_oct2020_d3_with_gaps gascogne4552019 gascogne4552019_10k entrainement_oct2020_d3_no_gap
 
