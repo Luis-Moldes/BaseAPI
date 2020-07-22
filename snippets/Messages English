@@ -1,0 +1,29 @@
+# WARNINGS: 0000
+# Missing inputs: 0100
+WRN0101 = '- No upwind reaching wind angle found in input, it will be set to 80º'
+WRN0102 = '- No downwind reaching wind angle found in input, it will be set to 110º'
+WRN0103 = '- No values for speedometer calibration steps found in input, default values based on speed will be used'
+WRN0104 = '- No values for compass calibration step found in input, it will be set to 20º'
+WRN0105 = '- Missing parameters for tack analysis wand found in input, default values will be used'
+WRN0106 = '- No speed threshold percentage for tack selection found in input, it will be set to 85% of the mean SOG'
+WRN0107 = '- Missing parameters for tack analysis wand found in input, default values will be used'
+WRN0108 = '- No speed threshold percentage for gybe selection found in input, it will be set to 85% of the mean SOG'
+WRN0109 = '- No analysis times found in input'
+WRN0110 = '- Consider setting \'only_while_sailing\' to True for a more precise analysis'
+WRN0111 = ''
+WRN0112 = ''
+WRN0113 = ''
+WRN0114 = ''
+
+# Missing in database: 0200
+WRN0201 = '- No info about sailing modes found in database: data will be extracted from the whole database'
+WRN0202 = '- Sailing modes info was found in database!'
+WRN0203 = '- No info about wind speed found in database or input'
+WRN0204 = 'No info in database about heading'
+WRN0205 = 'Unavailable: no Heading information in database'
+WRN0206 = 'Unavailable: no BSP information in database'
+WRN0207 = ''
+WRN0208 = ''
+WRN0209 = ''
+
+# ERRORS: 1000

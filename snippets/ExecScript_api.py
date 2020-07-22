@@ -13,7 +13,7 @@ import time as tyme
 #
 # def WarpRetrieve(boat_id, event_id, start_time, stop_time, twd, tws, upwind_angle, downwind_angle, tack_wand, gybe_wand,
 #                  speedovec, speed_treshold_perc):
-def WarpRetrieve(boat_id, event_id, filter, config):
+def WarpRetrieve(boat_id, event_id, filter, config, premium):
 
         url=conf.warp_url
 
@@ -21,6 +21,9 @@ def WarpRetrieve(boat_id, event_id, filter, config):
         variables_bucket = conf.bucket_vars
 
         warnings=[]
+
+        if premium==None:
+                premium=False
 
         # Checking how complete the dict is isn't easy, there might be a whole field or just a variable missing
 
@@ -66,25 +69,25 @@ def WarpRetrieve(boat_id, event_id, filter, config):
 
         if config['upwind_angle']==None:
                 upwind_angle=80
-                warnings.append('- No upwind reaching wind angle found in input, it will be set to 80º')
+                warnings.append('WRN0101')
         else:
                 upwind_angle = float(config['upwind_angle'])
 
         if config['downwind_angle']==None:
                 downwind_angle=110
-                warnings.append('- No downwind reaching wind angle found in input, it will be set to 110º')
+                warnings.append('WRN0102')
         else:
                 downwind_angle = float(config['downwind_angle'])
 
         if config['speedo_accuracy_steps'] == None:
                 speedovec = []
-                warnings.append('- No values for speedometer calibration steps found in input, default values based on speed will be used')
+                warnings.append('WRN0103')
         else:
-                speedovec = eval(config['speedo_accuracy_steps'])
+                speedovec = config['speedo_accuracy_steps']
 
         if config['compass_accuracy_step'] == None:
                 compstep=20
-                warnings.append('- No values for compass calibration step found in input, it will be set to 20º')
+                warnings.append('WRN0104')
         else:
                 compstep = int(config['compass_accuracy_step'])
 
@@ -94,27 +97,27 @@ def WarpRetrieve(boat_id, event_id, filter, config):
 
         if None in [config['tack_detection']['time_before'],config['tack_detection']['time_after'],config['tack_detection']['avg_time']]:
                 tack_wand=[20,40,15] #Time before, after, average
-                warnings.append('- Missing parameters for tack analysis wand found in input, default values will be used')
+                warnings.append('WRN0105')
         else:
                 tack_wand=[int(i) for i in [config['tack_detection']['time_before'],config['tack_detection']['time_after'],
                                             config['tack_detection']['avg_time']]]
 
         if config['tack_detection']['speed_threshold_pctg'] == None:
                 speed_treshold_perc_tack = 0.7
-                warnings.append('- No speed threshold percentage for tack selection found in input, it will be set to 85% of the mean SOG')
+                warnings.append('WRN0106')
         else:
                 speed_treshold_perc_tack=float(config['tack_detection']['speed_threshold_pctg'])
 
         if None in [config['gybe_detection']['time_before'],config['gybe_detection']['time_after'],config['gybe_detection']['avg_time']]:
                 gybe_wand=[30,60,15] #Time before, after, average
-                warnings.append('- Missing parameters for tack analysis wand found in input, default values will be used')
+                warnings.append('WRN0107')
         else:
                 gybe_wand=[int(i) for i in [config['gybe_detection']['time_before'],config['gybe_detection']['time_after'],
                                             config['gybe_detection']['avg_time']]]
 
         if config['gybe_detection']['speed_threshold_pctg'] == None:
                 speed_treshold_perc_gybe = 0.7
-                warnings.append('- No speed threshold percentage for gybe selection found in input, it will be set to 85% of the mean SOG')
+                warnings.append('WRN0108')
         else:
                 speed_treshold_perc_gybe=float(config['gybe_detection']['speed_threshold_pctg'])
 
@@ -125,7 +128,7 @@ def WarpRetrieve(boat_id, event_id, filter, config):
         if filter['start_time']==None or filter['stop_time']==None:
                 start_str = '2015-05-16T15:00:00.000Z'
                 stop_str = '2100-05-16T17:00:10.000Z'
-                warnings.append('- No analysis times found in input')
+                warnings.append('WRN0109')
         else:
                 start_str = filter['start_time'][:10] + 'T' + filter['start_time'][-8:] + '.000Z'
                 stop_str = filter['stop_time'][:10] + 'T' + filter['stop_time'][-8:] + '.000Z'
@@ -133,7 +136,7 @@ def WarpRetrieve(boat_id, event_id, filter, config):
         if filter['only_while_sailing']==None or filter['only_while_sailing']=='False':
                 need_times='F'
                 if filter['start_time'] == None or filter['stop_time'] == None:
-                        warnings.append('- Consider setting \'only_while_sailing\' to True for a more precise analysis')
+                        warnings.append('WRN0110')
         else:
                 need_times='T'
 
@@ -294,9 +297,9 @@ def WarpRetrieve(boat_id, event_id, filter, config):
         #                 stop_ind = 1
 
         if res[-1] == 1:
-                warnings.append('- No info about sailing modes found in database: data will be extracted from the whole database')
+                warnings.append('WRN0201')
         elif res[-1] == 2:
-                warnings.append('- Sailing modes info was found in database!')
+                warnings.append('WRN0202')
 
         #TIME REDUCTION
         if 'TWD' not in log.columns and 'COG' in log.columns and 'TWA' in log.columns:
@@ -330,7 +333,7 @@ def WarpRetrieve(boat_id, event_id, filter, config):
         if 'TWS' not in log.columns:
                 if config['tws_if_missing'] is None:
                         log['TWS'] = pd.Series(np.ones(len(log)) * 10)
-                        warnings.append('- No info about wind speed found in database or input')
+                        warnings.append('WRN0203')
                 else:
                         log['TWS'] = pd.Series(np.ones(len(log)) * float(config['tws_if_missing']))
                 twsmean = round(log['TWS'][0],2)
@@ -387,8 +390,8 @@ def WarpRetrieve(boat_id, event_id, filter, config):
                 [maneuvers_indexes, tacking_deltaTWA, tacking_deltaCOG, tacking_deltaHDG,tacking_deltaTWD, tacking_indexes, gybing_deltaTWA, \
                         gybing_deltaCOG, gybing_deltaHDG,gybing_deltaTWD, gybing_indexes]= manoeuvres_gpx_easy_API(dt, log.Date_Time, log.TWA,
                         log.SOG_Kts, log.COG, tack_wand, gybe_wand, speed_treshold_perc_tack, speed_treshold_perc_gybe)
-                deltatackHDG = 'No info in database about heading'
-                deltagybeHDG = 'No info in database about heading'
+                deltatackHDG = 'WRN0204'
+                deltagybeHDG = 'WRN0204'
 
         deltatackTWA= round(np.mean(tacking_deltaTWA),2)
         deltagybeTWA =round( np.mean(gybing_deltaTWA),2)
@@ -462,10 +465,10 @@ def WarpRetrieve(boat_id, event_id, filter, config):
                 for i in range(len(cvec)-1):
                         section=log.DeltaCOG[(log.COG>cvec[i]) & (log.COG<cvec[i+1])]
                         compassdict.append({'Min_Angle':cvec[i], 'Max_Angle':cvec[i+1], 'Accuracy':round(
-                                np.mean(section,2)), 'Point Count':len(section)})
+                                np.mean(section)), 'Point Count':len(section)})
 
         else:
-                compassdict = 'Unavailable: no Heading information in database'
+                compassdict = 'WRN0205'
 
         if speedovec==[]:
                 speedcap=max(log.SOG_Kts)
@@ -484,7 +487,7 @@ def WarpRetrieve(boat_id, event_id, filter, config):
                                 speedodict.append({'Min_Speed':speedovec[i], 'Max_Speed':round(max(log.SOG_Kts),2), 'Accuracy':round(
                                         np.mean(section),2), 'Point Count':len(section)})
         else:
-                speedodict = 'Unavailable: no BSP information in database'
+                speedodict = 'WRN0206'
 
         # return {"Mean_SOG":{"a":1, "b":2}, "Max_SOG_1s":sogmax, "Max_SOG_5min":sogmax5, "Max_SOG_1h":sogmax60, "Times":time,
         #         "Distances":distance, "Mean_TWA":twamean, "TWD_Max_Left":twd_left, "TWD_Max_Right":twd_right,
@@ -515,8 +518,8 @@ def WarpRetrieve(boat_id, event_id, filter, config):
 # a=WarpRetrieve('cdc3', 'gascogne4552019', None, {"ass":2,"boo":'justin'}, 10, 10, None, None, None, None, None, None)
 # a=WarpRetrieve('cdc3', 'entrainement_jan2020_d2_gps_only', None, None, None, None, None, None, None, None, None, None)
 
-# a=WarpRetrieve('cdc3', 'gascogne4552019', {"start_time":"2019-05-16 13:00:00", "stop_time":"2019-05-16 16:00:00",
-# 		"only_while_sailing":"True"}, None)
+a=WarpRetrieve('cdc3', 'gascogne4552019', {"start_time":"2019-05-16 13:00:00", "stop_time":"2019-05-16 16:00:00",
+		"only_while_sailing":"True"}, None)
 
 # entrainement_jan2020_d2_gps_only entrainement_oct2020_d3_with_gaps gascogne4552019 gascogne4552019_10k entrainement_oct2020_d3_no_gap
 

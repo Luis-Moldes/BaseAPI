@@ -107,7 +107,8 @@ class WarpGetter(generics.RetrieveUpdateDestroyAPIView):
             #                     request.data.get('speedo_calibration_steps'), request.data.get('man_speed_treshold_perc') )
 
             out = WarpRetrieve(request.data.get('boat_id'), request.data.get('event_id'),
-                                request.data.get('filter'), request.data.get('config'))
+                                request.data.get('filter'), request.data.get('config'),
+                               request.data.get('premium'))
 
             return JsonResponse(out, status=201)
 

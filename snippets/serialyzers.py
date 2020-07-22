@@ -69,6 +69,7 @@ class WarpSerializerForGet(serializers.HyperlinkedModelSerializer): #
 
     boat_id = serializers.CharField()
     event_id = serializers.CharField()
+
     # meanSOG = serializers.FloatField(default=0)
     # meanCOG = serializers.FloatField(default=0)
     # start = serializers.CharField(default='None')
