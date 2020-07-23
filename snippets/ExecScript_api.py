@@ -495,7 +495,7 @@ def WarpRetrieve(boat_id, event_id, filter, config, premium):
         #         "Tack_Delta_TWA_Avg":deltatack, "Gybe_Delta_TWA_Avg":deltagybe, "Compass_Accuracy":compass_accuracy, "Speedometer_Accuracy":speedo_accuracy,
         #         "Warnings":warnings}
         if premium:
-                return {"children": [{"type": "Label", "forceCreate": true, "text": "Time [s] spent in each sailing mode","fontSize": 15,
+                return {"children": [{"type": "Label", "forceCreate": True, "text": "Time [s] spent in each sailing mode","fontSize": 15,
                     "align": "center"}],
                   "series": [{"type": "PieSeries", "dataFields": {"value": "Seconds", "category": "Mode"}}],
                   "data": [{"Mode": "Upwind", "Seconds": time[0]},
@@ -528,7 +528,7 @@ def WarpRetrieve(boat_id, event_id, filter, config, premium):
 # a=WarpRetrieve('cdc3', 'entrainement_jan2020_d2_gps_only', None, None, None, None, None, None, None, None, None, None)
 
 # a=WarpRetrieve('cdc3', 'gascogne4552019', {"start_time":"2019-05-16 13:00:00", "stop_time":"2019-05-16 16:00:00",
-		# "only_while_sailing":"True"}, None)
+# 		"only_while_sailing":"True"}, None, "True")
 
 # entrainement_jan2020_d2_gps_only entrainement_oct2020_d3_with_gaps gascogne4552019 gascogne4552019_10k entrainement_oct2020_d3_no_gap
 
