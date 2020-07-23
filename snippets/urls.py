@@ -45,7 +45,7 @@ urlpatterns = format_suffix_patterns([
          views.WarpGetter.as_view(),
          name='data-retrieve'),
     path('upload/', views.FileUploadView.as_view(), name='uploadimage'),
-    path('loaderio-8531c4531d7d162fdfb8d7bed24f9d6f/', views.FileUploadView.as_view(), name='loader'),
+    path('loaderio-8531c4531d7d162fdfb8d7bed24f9d6f/', views.FileDownloadListAPIView.as_view(), name='loader'),
     # path('api-token-auth/', obtain_auth_token, name='api-tokn-auth')
     path('api-token-auth/', views.obtain_expiring_auth_token, name='api-tokn-auth'),
     path('api-token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
