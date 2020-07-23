@@ -137,7 +137,15 @@ class SnippetHighlight(generics.GenericAPIView):
         return Response(snippet.highlighted)
 
 
+from wsgiref.util import FileWrapper
 
+class FileDownloadListAPIView(generics.ListAPIView):
+
+    def get(self, request, *args, **kwargs):
+        document = open('snippets/loaderio-8531c4531d7d162fdfb8d7bed24f9d6f.txt', 'rb')
+        response = HttpResponse(FileWrapper(document), content_type='application/txt')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % 'loaderio-8531c4531d7d162fdfb8d7bed24f9d6f.txt'
+        return response
 
 
 
