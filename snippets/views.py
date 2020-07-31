@@ -88,7 +88,7 @@ class WarpGetter(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = WarpSerializerForGet
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,IsOwnerOrNothing]
 
-    def get(self, request, *args, **kwargs): # An override of the default "get" command
+    def post(self, request, *args, **kwargs): # An override of the default "get" command
         # return Response(request.data.get('popo')) #For testing
         # serializer = WarpSerializerForGet(data=request.data) #If you include the parameters in the body, i.e. its a POST request
         serializer = WarpSerializerForGet(data=request.data)
