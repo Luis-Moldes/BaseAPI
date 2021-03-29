@@ -37,7 +37,7 @@ pandas==1.0.1
 pexpect==4.8.0
 Pillow==7.0.0
 ptyprocess==0.6.0
-Pygments==2.6.1
+Pygments==2.7.4
 PyJWT==1.7.1
 pyparsing==2.4.6
 #pypiwin32==223
