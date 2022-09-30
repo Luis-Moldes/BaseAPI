@@ -21,7 +21,7 @@ gunicorn==20.0.4
 heroku==0.1.4
 httpie==2.0.0
 idna==2.9
-joblib==0.14.1
+joblib==1.2.0
 #Kivy==2.0.0rc1
 #kivy-deps.angle==0.2.0
 #kivy-deps.glew==0.2.0
